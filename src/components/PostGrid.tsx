@@ -39,7 +39,7 @@ const STATUS_BADGE: Record<PostStatus, { icon: React.ReactNode; bg: string }> = 
 };
 
 export function PostGrid() {
-  const posts = usePosts((s) => s.posts);
+  const posts = usePosts((s) => s.posts.slice(0, 12));
   const reorder = usePosts((s) => s.reorder);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);

@@ -60,7 +60,7 @@ function SharedView() {
     }
     const payload = data as { profile: SharedProfile; posts: SharedPost[] };
     setProfile(payload.profile);
-    setPosts(payload.posts ?? []);
+    setPosts((payload.posts ?? []).slice(0, 12));
     setLoading(false);
   };
 

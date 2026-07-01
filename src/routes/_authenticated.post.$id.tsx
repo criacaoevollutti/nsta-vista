@@ -18,7 +18,7 @@ import {
   Sparkles,
   Target,
   Trash2,
-  Type,
+  
   X,
 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
@@ -103,7 +103,9 @@ function PostPage() {
   const [supportSent, setSupportSent] = useState(false);
   const [justApproved, setJustApproved] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -166,6 +168,45 @@ function PostPage() {
       setUploading(false);
     }
   };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !post) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Envie uma imagem para a capa.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Capa maior que 20MB.");
+      return;
+    }
+    setUploadingCover(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) throw new Error("Sessão expirada");
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${uid}/${post.id}-${Date.now()}-cover.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("media")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage
+        .from("media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (sErr || !signed) throw sErr ?? new Error("Falha ao gerar URL");
+      update(post.id, { thumb: signed.signedUrl });
+      toast.success("Capa atualizada");
+    } catch (err) {
+      console.error(err);
+      toast.error("Não foi possível enviar a capa");
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+
 
 
   if (!post) {
@@ -291,6 +332,32 @@ function PostPage() {
               </>
             )}
           </button>
+          {isVideoUrl(post.media) ? (
+            <>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleCoverUpload}
+              />
+              <button
+                onClick={() => coverInputRef.current?.click()}
+                disabled={uploadingCover}
+                className="absolute bottom-14 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
+              >
+                {uploadingCover ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando capa…
+                  </>
+                ) : (
+                  <>
+                    <Images className="h-3.5 w-3.5" /> Trocar capa
+                  </>
+                )}
+              </button>
+            </>
+          ) : null}
           <div className="absolute bottom-3 left-3 h-7 px-2 rounded-full bg-black/45 text-white text-[10px] font-medium flex items-center gap-1">
             <Film className="h-3 w-3" /> Máx {MAX_MB}MB · imagem ou vídeo
           </div>
@@ -300,10 +367,10 @@ function PostPage() {
         {/* Editable fields */}
         <div className="p-5 space-y-4">
           <EditableField
-            icon={<Type className="h-4 w-4" />}
-            label="Título"
-            value={post.title}
-            onChange={(v) => update(post.id, { title: v })}
+            icon={<Target className="h-4 w-4" />}
+            label="Objetivo da postagem"
+            value={post.objective}
+            onChange={(v) => update(post.id, { objective: v })}
           />
           <EditableField
             icon={<MessageSquare className="h-4 w-4" />}
@@ -313,12 +380,6 @@ function PostPage() {
             multiline
           />
           <EditableField
-            icon={<Target className="h-4 w-4" />}
-            label="Objetivo da postagem"
-            value={post.objective}
-            onChange={(v) => update(post.id, { objective: v })}
-          />
-          <EditableField
             icon={<Sparkles className="h-4 w-4" />}
             label="Observações internas"
             value={post.notes}
@@ -326,6 +387,8 @@ function PostPage() {
             onChange={(v) => update(post.id, { notes: v })}
             multiline
           />
+
+
 
           <div className="grid grid-cols-2 gap-3">
             <MetaField
