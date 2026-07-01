@@ -111,7 +111,7 @@ export type Database = {
       }
       profiles: {
         Row: {
-          access_pin: string
+          access_pin: string | null
           avatar: string
           bio: string
           category: string
@@ -127,7 +127,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          access_pin: string
+          access_pin?: string | null
           avatar?: string
           bio?: string
           category?: string
@@ -135,7 +135,7 @@ export type Database = {
           followers?: string
           following?: number
           handle?: string
-          id: string
+          id?: string
           location?: string
           name?: string
           share_token?: string
@@ -143,7 +143,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          access_pin?: string
+          access_pin?: string | null
           avatar?: string
           bio?: string
           category?: string
