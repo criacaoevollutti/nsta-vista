@@ -36,48 +36,50 @@ async function captureVideoThumbnail(file: File): Promise<Blob | null> {
     video.preload = "auto";
     video.muted = true;
     video.playsInline = true;
-    video.crossOrigin = "anonymous";
     video.src = url;
 
-    const cleanup = () => URL.revokeObjectURL(url);
-    const fail = () => {
-      cleanup();
-      resolve(null);
+    let done = false;
+    const finish = (b: Blob | null) => {
+      if (done) return;
+      done = true;
+      URL.revokeObjectURL(url);
+      resolve(b);
     };
+
+    const timeout = window.setTimeout(() => finish(null), 8000);
 
     video.onloadedmetadata = () => {
       const target = Math.max(0.1, (video.duration || 2) / 2);
-      const onSeeked = () => {
+      video.onseeked = () => {
         try {
           const w = video.videoWidth;
           const h = video.videoHeight;
-          if (!w || !h) return fail();
+          if (!w || !h) return finish(null);
           const canvas = document.createElement("canvas");
           canvas.width = w;
           canvas.height = h;
           const ctx = canvas.getContext("2d");
-          if (!ctx) return fail();
+          if (!ctx) return finish(null);
           ctx.drawImage(video, 0, 0, w, h);
           canvas.toBlob(
             (b) => {
-              cleanup();
-              resolve(b);
+              clearTimeout(timeout);
+              finish(b);
             },
             "image/jpeg",
             0.85,
           );
         } catch {
-          fail();
+          finish(null);
         }
       };
-      video.onseeked = onSeeked;
       try {
         video.currentTime = target;
       } catch {
-        fail();
+        finish(null);
       }
     };
-    video.onerror = fail;
+    video.onerror = () => finish(null);
   });
 }
 
