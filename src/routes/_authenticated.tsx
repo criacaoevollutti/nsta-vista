@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { user } = Route.useRouteContext();
-  useHydrateData(user.id);
+  useHydrateData(user?.id);
 
   useEffect(() => {
     // Reset local stores on sign-out
@@ -33,6 +33,8 @@ function AuthenticatedLayout() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  if (!user?.id) return null;
 
   return <Outlet />;
 }
