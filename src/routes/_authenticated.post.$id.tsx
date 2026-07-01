@@ -23,7 +23,7 @@ import { AppFrame } from "@/components/AppFrame";
 import { usePosts } from "@/lib/store";
 import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 
-export const Route = createFileRoute("/post/$id")({
+export const Route = createFileRoute("/_authenticated/post/$id")({
   ssr: false,
   component: PostPage,
 });

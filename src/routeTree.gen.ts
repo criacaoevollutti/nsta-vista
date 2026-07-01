@@ -10,43 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
-import { Route as PostIdRouteImport } from './routes/post.$id'
+import { Route as AuthenticatedPostIdRouteImport } from './routes/_authenticated.post.$id'
 
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/_authenticated/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PostIdRoute = PostIdRouteImport.update({
-  id: '/post/$id',
+const AuthenticatedPostIdRoute = AuthenticatedPostIdRouteImport.update({
+  id: '/_authenticated/post/$id',
   path: '/post/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/post/$id': typeof PostIdRoute
   '/': typeof AuthenticatedIndexRoute
+  '/post/$id': typeof AuthenticatedPostIdRoute
 }
 export interface FileRoutesByTo {
-  '/post/$id': typeof PostIdRoute
   '/': typeof AuthenticatedIndexRoute
+  '/post/$id': typeof AuthenticatedPostIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/post/$id': typeof PostIdRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/post/$id': typeof AuthenticatedPostIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/post/$id' | '/'
+  fullPaths: '/' | '/post/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/post/$id' | '/'
-  id: '__root__' | '/post/$id' | '/_authenticated/'
+  to: '/' | '/post/$id'
+  id: '__root__' | '/_authenticated/' | '/_authenticated/post/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  PostIdRoute: typeof PostIdRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedPostIdRoute: typeof AuthenticatedPostIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,19 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/post/$id': {
-      id: '/post/$id'
+    '/_authenticated/post/$id': {
+      id: '/_authenticated/post/$id'
       path: '/post/$id'
       fullPath: '/post/$id'
-      preLoaderRoute: typeof PostIdRouteImport
+      preLoaderRoute: typeof AuthenticatedPostIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  PostIdRoute: PostIdRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedPostIdRoute: AuthenticatedPostIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
