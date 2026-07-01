@@ -16,7 +16,9 @@ export type Database = {
     Tables: {
       posts: {
         Row: {
+          approval_status: string
           caption: string
+          client_comment: string
           created_at: string
           date: string
           id: string
@@ -33,7 +35,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approval_status?: string
           caption?: string
+          client_comment?: string
           created_at?: string
           date?: string
           id?: string
@@ -50,7 +54,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approval_status?: string
           caption?: string
+          client_comment?: string
           created_at?: string
           date?: string
           id?: string
@@ -80,6 +86,7 @@ export type Database = {
           id: string
           location: string
           name: string
+          share_token: string
           site: string
           updated_at: string
         }
@@ -94,6 +101,7 @@ export type Database = {
           id: string
           location?: string
           name?: string
+          share_token?: string
           site?: string
           updated_at?: string
         }
@@ -108,8 +116,30 @@ export type Database = {
           id?: string
           location?: string
           name?: string
+          share_token?: string
           site?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -118,10 +148,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_profile: { Args: { _token: string }; Returns: Json }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      set_post_approval: {
+        Args: {
+          _comment: string
+          _post_id: string
+          _status: string
+          _token: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -248,6 +294,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "client"],
+    },
   },
 } as const
