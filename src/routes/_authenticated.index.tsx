@@ -30,7 +30,7 @@ function Home() {
   const handle = useProfile((s) => s.profile.handle);
   const navigate = useNavigate();
   const { user } = Route.useRouteContext();
-  const { isAdmin } = useIsAdmin(user.id);
+  const { isAdmin } = useIsAdmin(user?.id);
   const approved = posts.filter((p) => p.status === "approved" || p.status === "published").length;
 
   const signOut = async () => {
