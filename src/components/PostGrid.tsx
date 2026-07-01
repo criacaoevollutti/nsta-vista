@@ -16,7 +16,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Play } from "lucide-react";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePosts } from "@/lib/store";
 import { MediaThumb } from "@/components/MediaThumb";
 import type { Post, PostStatus } from "@/lib/types";
@@ -39,7 +39,11 @@ const STATUS_BADGE: Record<PostStatus, { icon: React.ReactNode; bg: string }> = 
 };
 
 export function PostGrid() {
-  const posts = usePosts((s) => s.posts.slice(0, 12));
+  // Zustand selectors must return a stable reference. Returning
+  // `s.posts.slice(...)` directly creates a new array on every render and can
+  // trigger React's "Maximum update depth exceeded" loop.
+  const posts = usePosts((s) => s.posts);
+  const visiblePosts = useMemo(() => posts.slice(0, 12), [posts]);
   const reorder = usePosts((s) => s.reorder);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -58,7 +62,7 @@ export function PostGrid() {
   if (!mounted) {
     return (
       <div className="grid grid-cols-3 gap-[2px] bg-background">
-        {posts.map((p) => (
+        {visiblePosts.map((p) => (
           <div key={p.id} className="relative aspect-[4/5] overflow-hidden">
             <FeedCover post={p} />
           </div>
@@ -69,9 +73,9 @@ export function PostGrid() {
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={posts.map((p) => p.id)} strategy={rectSortingStrategy}>
+      <SortableContext items={visiblePosts.map((p) => p.id)} strategy={rectSortingStrategy}>
         <div className="grid grid-cols-3 gap-[2px] bg-background">
-          {posts.map((p, i) => (
+          {visiblePosts.map((p, i) => (
             <GridCell key={p.id} post={p} index={i} />
           ))}
         </div>
