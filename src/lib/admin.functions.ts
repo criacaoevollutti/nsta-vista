@@ -19,9 +19,10 @@ export const createClientCompany = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const newId = crypto.randomUUID();
     const { data: created, error } = await supabaseAdmin
       .from("profiles")
-      .insert({ name: data.name, handle: data.handle })
+      .insert({ id: newId, name: data.name, handle: data.handle })
       .select("id, access_pin")
       .single();
     if (error || !created) throw new Error(error?.message ?? "Falha ao criar empresa");
