@@ -134,7 +134,7 @@ function PostPage() {
         .from("media")
         .createSignedUrl(path, 60 * 60 * 24 * 365);
       if (signErr || !signed) throw signErr ?? new Error("Falha ao gerar URL");
-      let thumbUrl = signed.signedUrl;
+      let thumbUrl = isVideo ? post.thumb : signed.signedUrl;
       if (isVideo) {
         const blob = await captureVideoThumbnail(file);
         if (blob) {
@@ -150,7 +150,7 @@ function PostPage() {
           }
         }
       }
-      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: thumbUrl };
+      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: thumbUrl || signed.signedUrl };
       if (isVideo && post.type !== "reel" && post.type !== "story" && post.type !== "video") {
         patch.type = "reel";
       }

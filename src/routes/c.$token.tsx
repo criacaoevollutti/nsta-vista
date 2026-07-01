@@ -6,6 +6,8 @@ import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
 import { supabase } from "@/integrations/supabase/client";
 
+const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
+
 export const Route = createFileRoute("/c/$token")({
   ssr: false,
   head: () => ({
@@ -122,7 +124,7 @@ function SharedView() {
               onClick={() => setActive(p)}
               className="relative aspect-[4/5] overflow-hidden"
             >
-              <img src={p.thumb} alt={p.title} className="h-full w-full object-cover" />
+              <SharedFeedCover post={p} />
               <StatusPill status={p.approval_status} />
             </button>
           ))}
@@ -159,6 +161,24 @@ function StatusPill({ status }: { status: SharedPost["approval_status"] }) {
       )}
     </div>
   );
+}
+
+function SharedFeedCover({ post }: { post: SharedPost }) {
+  const cover = post.thumb || post.media;
+
+  if (isVideoUrl(cover)) {
+    return (
+      <video
+        src={post.media}
+        className="h-full w-full object-cover bg-surface-2"
+        muted
+        playsInline
+        preload="metadata"
+      />
+    );
+  }
+
+  return <img src={cover} alt={post.title} className="h-full w-full object-cover bg-surface-2" />;
 }
 
 function PostReviewSheet({
@@ -199,7 +219,7 @@ function PostReviewSheet({
         onClick={(e) => e.stopPropagation()}
       >
         {(() => {
-          const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(post.media || "");
+          const isVideo = isVideoUrl(post.media || "");
           const ratio = isVideo || post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]";
           return isVideo ? (
             <video src={post.media} controls playsInline preload="metadata" className={`w-full object-contain bg-black ${ratio}`} />
