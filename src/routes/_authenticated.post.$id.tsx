@@ -26,7 +26,7 @@ import { usePosts } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 
-const MAX_MB = 100;
+const MAX_MB = 500;
 const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
 
 
