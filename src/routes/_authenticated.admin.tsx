@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Copy, ExternalLink, Loader2, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Copy, ExternalLink, Loader2, Pencil, ShieldAlert } from "lucide-react";
+
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
