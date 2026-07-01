@@ -14,10 +14,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Clock, Film, Images, MessageSquareWarning, Rss } from "lucide-react";
+import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { usePosts } from "@/lib/store";
+import { MediaThumb } from "@/components/MediaThumb";
 import type { Post, PostStatus } from "@/lib/types";
 
 const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);

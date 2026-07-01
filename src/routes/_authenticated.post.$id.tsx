@@ -27,7 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 
 const MAX_MB = 500;
-const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
+import { isVideoUrl } from "@/lib/utils";
 
 async function captureVideoThumbnail(file: File): Promise<Blob | null> {
   return new Promise((resolve) => {
@@ -134,7 +134,7 @@ function PostPage() {
         .from("media")
         .createSignedUrl(path, 60 * 60 * 24 * 365);
       if (signErr || !signed) throw signErr ?? new Error("Falha ao gerar URL");
-      let thumbUrl = isVideo ? post.thumb : signed.signedUrl;
+      let thumbUrl = signed.signedUrl;
       if (isVideo) {
         const blob = await captureVideoThumbnail(file);
         if (blob) {

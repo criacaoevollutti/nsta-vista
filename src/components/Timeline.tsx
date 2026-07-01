@@ -1,4 +1,5 @@
 import { usePosts } from "@/lib/store";
+import { MediaThumb } from "@/components/MediaThumb";
 import { STATUS_META } from "@/lib/types";
 import { CalendarDays } from "lucide-react";
 
@@ -29,7 +30,7 @@ export function Timeline() {
                 className={`absolute -left-[5px] top-4 h-[9px] w-[9px] rounded-full ring-4 ring-background ${s.dot}`}
               />
               <div className="flex items-center gap-3">
-                <img src={p.thumb} className="h-11 w-11 rounded-lg object-cover shrink-0" alt="" />
+                <MediaThumb src={p.thumb} className="h-11 w-11 rounded-lg object-cover shrink-0" alt="" />
                 <div className="min-w-0 flex-1">
                   <div className="text-[13px] font-medium truncate">{p.title}</div>
                   <div className="text-[11.5px] text-muted-foreground mt-0.5">

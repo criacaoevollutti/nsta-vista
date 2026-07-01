@@ -6,7 +6,8 @@ import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
 import { supabase } from "@/integrations/supabase/client";
 
-const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
+import { isVideoUrl } from "@/lib/utils";
+import { MediaThumb } from "@/components/MediaThumb";
 
 export const Route = createFileRoute("/c/$token")({
   ssr: false,
@@ -124,7 +125,7 @@ function SharedView() {
               onClick={() => setActive(p)}
               className="relative aspect-[4/5] overflow-hidden"
             >
-              <SharedFeedCover post={p} />
+              <MediaThumb src={p.thumb} alt={p.title} className="h-full w-full object-cover" showPlayIcon />
               <StatusPill status={p.approval_status} />
             </button>
           ))}
@@ -163,40 +164,6 @@ function StatusPill({ status }: { status: SharedPost["approval_status"] }) {
   );
 }
 
-function SharedFeedCover({ post }: { post: SharedPost }) {
-  const cover = post.thumb || post.media;
-
-  if (isVideoUrl(cover)) {
-    return (
-      <video
-        src={post.media}
-        className="h-full w-full object-cover bg-surface-2"
-        muted
-        playsInline
-        preload="metadata"
-      />
-    );
-  }
-
-  return <img src={cover} alt={post.title} className="h-full w-full object-cover bg-surface-2" />;
-}
-
-function PostReviewSheet({
-  post,
-  token,
-  onClose,
-  onUpdated,
-}: {
-  post: SharedPost;
-  token: string;
-  onClose: () => void;
-  onUpdated: (p: SharedPost) => void;
-}) {
-  const [comment, setComment] = useState(post.client_comment ?? "");
-  const [saving, setSaving] = useState<"approved" | "changes_requested" | null>(null);
-
-  const submit = async (status: "approved" | "changes_requested") => {
-    setSaving(status);
     const { data, error } = await supabase.rpc("set_post_approval", {
       _token: token,
       _post_id: post.id,
