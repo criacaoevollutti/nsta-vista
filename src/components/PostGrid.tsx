@@ -56,7 +56,7 @@ export function PostGrid() {
     return (
       <div className="grid grid-cols-3 gap-[2px] bg-background">
         {posts.map((p) => (
-          <div key={p.id} className="relative aspect-square overflow-hidden">
+          <div key={p.id} className="relative aspect-[4/5] overflow-hidden">
             <img src={p.thumb} alt={p.title} className="h-full w-full object-cover" />
           </div>
         ))}
@@ -106,7 +106,7 @@ function GridCell({ post, index }: { post: Post; index: number }) {
       initial={{ opacity: 0, scale: 0.94 }}
       animate={{ opacity: 1, scale: isDragging ? 1.04 : 1 }}
       transition={{ type: "spring", stiffness: 380, damping: 30, delay: index * 0.02 }}
-      className={`relative aspect-square overflow-hidden touch-none select-none ${
+      className={`relative aspect-[4/5] overflow-hidden touch-none select-none ${
         isDragging ? "shadow-[var(--shadow-lg)] rounded-md" : ""
       }`}
       onClick={() => {

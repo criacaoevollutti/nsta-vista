@@ -114,7 +114,7 @@ function PostPage() {
         {/* Media */}
         <motion.div
           layoutId={`media-${post.id}`}
-          className="relative aspect-square w-full bg-surface-2"
+          className={`relative w-full bg-surface-2 ${post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`}
         >
           <img src={post.media} alt={post.title} className="h-full w-full object-cover" />
           {(post.type === "video" || post.type === "reel") ? (
