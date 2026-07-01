@@ -1,8 +1,12 @@
 import { create } from "zustand";
+import { toast } from "sonner";
 import type { Post, PostStatus } from "./types";
 import { initialPosts } from "./mock-data";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
+
+export const MAX_POSTS = 12;
+
 
 interface PostsState {
   posts: Post[];
