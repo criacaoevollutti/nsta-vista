@@ -246,10 +246,12 @@ function PostPage() {
             <video
               key={post.media}
               src={post.media}
-              className="h-full w-full object-cover bg-black"
+              poster={post.thumb && post.thumb !== post.media ? post.thumb : undefined}
+              className="h-full w-full object-contain bg-black"
               controls
               playsInline
               preload="metadata"
+              onError={() => toast.error("Formato de vídeo não suportado pelo navegador. Envie MP4 (H.264).")}
             />
           ) : (
             <img src={post.media} alt={post.title} className="h-full w-full object-cover" />
