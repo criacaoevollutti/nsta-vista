@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { Post, PostStatus } from "./types";
 import { initialPosts } from "./mock-data";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
 interface PostsState {
   posts: Post[];
@@ -139,9 +140,9 @@ export const usePosts = create<PostsState>((set, get) => ({
   update: (id, patch) => {
     set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
 
-    const dbPatch: Record<string, unknown> = {};
+    const dbPatch: TablesUpdate<"posts"> = {};
     for (const key of DB_COLUMNS) {
-      if (key in patch) dbPatch[key] = patch[key as keyof Post];
+      if (key in patch) (dbPatch as Record<string, unknown>)[key] = patch[key as keyof Post];
     }
     if (Object.keys(dbPatch).length === 0) return;
 

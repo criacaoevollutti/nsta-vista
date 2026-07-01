@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { Profile } from "./types";
 import { profile as mockProfile } from "./mock-data";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
 const emptyProfile: Profile = {
   name: "",
@@ -84,9 +85,9 @@ export const useProfile = create<ProfileState>((set, get) => ({
     if (!userId) return;
 
     // Only send DB-backed columns
-    const dbPatch: Record<string, unknown> = {};
+    const dbPatch: TablesUpdate<"profiles"> = {};
     for (const key of ["name", "handle", "category", "bio", "location", "site", "avatar", "followers", "following"] as const) {
-      if (key in patch) dbPatch[key] = patch[key];
+      if (key in patch) (dbPatch as Record<string, unknown>)[key] = patch[key];
     }
     if (Object.keys(dbPatch).length === 0) return;
 
