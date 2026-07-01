@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AcessarRouteImport } from './routes/acessar'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
 import { Route as CTokenRouteImport } from './routes/c.$token'
@@ -20,6 +21,11 @@ import { Route as AuthenticatedAdminEditUserIdRouteImport } from './routes/_auth
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcessarRoute = AcessarRouteImport.update({
+  id: '/acessar',
+  path: '/acessar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -55,6 +61,7 @@ const AuthenticatedAdminEditUserIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/acessar': typeof AcessarRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/c/$token': typeof CTokenRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/admin/edit/$userId': typeof AuthenticatedAdminEditUserIdRoute
 }
 export interface FileRoutesByTo {
+  '/acessar': typeof AcessarRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/c/$token': typeof CTokenRoute
@@ -72,6 +80,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/acessar': typeof AcessarRoute
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/c/$token': typeof CTokenRoute
@@ -83,6 +92,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/acessar'
     | '/auth'
     | '/admin'
     | '/c/$token'
@@ -90,6 +100,7 @@ export interface FileRouteTypes {
     | '/admin/edit/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/acessar'
     | '/auth'
     | '/admin'
     | '/c/$token'
@@ -99,6 +110,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/acessar'
     | '/auth'
     | '/_authenticated/admin'
     | '/c/$token'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AcessarRoute: typeof AcessarRoute
   AuthRoute: typeof AuthRoute
   CTokenRoute: typeof CTokenRoute
 }
@@ -120,6 +133,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acessar': {
+      id: '/acessar'
+      path: '/acessar'
+      fullPath: '/acessar'
+      preLoaderRoute: typeof AcessarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -196,6 +216,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AcessarRoute: AcessarRoute,
   AuthRoute: AuthRoute,
   CTokenRoute: CTokenRoute,
 }
