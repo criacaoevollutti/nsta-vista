@@ -165,9 +165,11 @@ function StatusPill({ status }: { status: SharedPost["approval_status"] }) {
 }
 
 function SharedFeedCover({ post }: { post: SharedPost }) {
+  const [useVideoFallback, setUseVideoFallback] = useState(false);
   const cover = post.thumb || post.media;
+  const hasVideoMedia = isVideoUrl(post.media);
 
-  if (isVideoUrl(cover)) {
+  if (isVideoUrl(cover) || useVideoFallback) {
     return (
       <video
         src={post.media}
@@ -179,7 +181,16 @@ function SharedFeedCover({ post }: { post: SharedPost }) {
     );
   }
 
-  return <img src={cover} alt={post.title} className="h-full w-full object-cover bg-surface-2" />;
+  return (
+    <img
+      src={cover}
+      alt={post.title}
+      className="h-full w-full object-cover bg-surface-2"
+      onError={() => {
+        if (hasVideoMedia) setUseVideoFallback(true);
+      }}
+    />
+  );
 }
 
 function PostReviewSheet({

@@ -140,9 +140,11 @@ function GridCell({ post, index }: { post: Post; index: number }) {
 }
 
 function FeedCover({ post }: { post: Post }) {
+  const [useVideoFallback, setUseVideoFallback] = useState(false);
   const cover = post.thumb || post.media;
+  const hasVideoMedia = isVideoUrl(post.media);
 
-  if (isVideoUrl(cover)) {
+  if (isVideoUrl(cover) || useVideoFallback) {
     return (
       <video
         src={post.media}
@@ -160,6 +162,9 @@ function FeedCover({ post }: { post: Post }) {
       alt={post.title}
       className="h-full w-full object-cover bg-surface-2"
       draggable={false}
+      onError={() => {
+        if (hasVideoMedia) setUseVideoFallback(true);
+      }}
     />
   );
 }
