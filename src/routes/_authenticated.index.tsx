@@ -8,7 +8,7 @@ import { PostGrid } from "@/components/PostGrid";
 import { Timeline } from "@/components/Timeline";
 import { CycleCelebration } from "@/components/CycleCelebration";
 import { usePosts } from "@/lib/store";
-import { profile } from "@/lib/mock-data";
+import { useProfile } from "@/lib/profile-store";
 
 export const Route = createFileRoute("/_authenticated/")({
   ssr: false,
@@ -25,11 +25,12 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function Home() {
   const posts = usePosts((s) => s.posts);
+  const handle = useProfile((s) => s.profile.handle);
   const approved = posts.filter((p) => p.status === "approved" || p.status === "published").length;
 
   return (
     <AppFrame>
-      <TopBar title={profile.handle} subtitle="Projeção do feed" />
+      <TopBar title={handle} subtitle="Projeção do feed" />
       <div className="flex-1 overflow-y-auto">
         <ProfileHeader approvedCount={approved} total={posts.length} />
         <Highlights />
