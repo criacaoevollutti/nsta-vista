@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_credentials: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          password: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          password: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          password?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_credentials_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           approval_status: string
