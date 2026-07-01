@@ -135,7 +135,7 @@ export type Database = {
           followers?: string
           following?: number
           handle?: string
-          id: string
+          id?: string
           location?: string
           name?: string
           share_token?: string
