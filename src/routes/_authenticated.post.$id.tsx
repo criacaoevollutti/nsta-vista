@@ -27,7 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 
 const MAX_MB = 500;
-const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
+import { isVideoUrl } from "@/lib/utils";
 
 async function captureVideoThumbnail(file: File): Promise<Blob | null> {
   return new Promise((resolve) => {
@@ -150,7 +150,7 @@ function PostPage() {
           }
         }
       }
-      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: thumbUrl };
+      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: thumbUrl || signed.signedUrl };
       if (isVideo && post.type !== "reel" && post.type !== "story" && post.type !== "video") {
         patch.type = "reel";
       }

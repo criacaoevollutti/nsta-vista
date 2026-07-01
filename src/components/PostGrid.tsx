@@ -14,11 +14,14 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Clock, Film, Images, MessageSquareWarning, Rss } from "lucide-react";
+import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { usePosts } from "@/lib/store";
+import { MediaThumb } from "@/components/MediaThumb";
 import type { Post, PostStatus } from "@/lib/types";
+
+const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
 
 const TYPE_ICON: Partial<Record<Post["type"], React.ReactNode>> = {
   carousel: <Images className="h-3.5 w-3.5" />,
@@ -57,7 +60,7 @@ export function PostGrid() {
       <div className="grid grid-cols-3 gap-[2px] bg-background">
         {posts.map((p) => (
           <div key={p.id} className="relative aspect-[4/5] overflow-hidden">
-            <img src={p.thumb} alt={p.title} className="h-full w-full object-cover" />
+            <FeedCover post={p} />
           </div>
         ))}
       </div>
@@ -114,12 +117,7 @@ function GridCell({ post, index }: { post: Post; index: number }) {
         navigate({ to: "/post/$id", params: { id: post.id } });
       }}
     >
-      <img
-        src={post.thumb}
-        alt={post.title}
-        className="h-full w-full object-cover"
-        draggable={false}
-      />
+      <FeedCover post={post} />
 
       {/* Type icon top-right */}
       {TYPE_ICON[post.type] ? (
@@ -138,5 +136,35 @@ function GridCell({ post, index }: { post: Post; index: number }) {
       {/* Dim overlay when dragging */}
       {isDragging ? <div className="absolute inset-0 bg-background/10" /> : null}
     </motion.div>
+  );
+}
+
+function FeedCover({ post }: { post: Post }) {
+  const [useVideoFallback, setUseVideoFallback] = useState(false);
+  const cover = post.thumb || post.media;
+  const hasVideoMedia = isVideoUrl(post.media);
+
+  if (isVideoUrl(cover) || useVideoFallback) {
+    return (
+      <video
+        src={post.media}
+        className="h-full w-full object-cover bg-surface-2"
+        muted
+        playsInline
+        preload="metadata"
+      />
+    );
+  }
+
+  return (
+    <img
+      src={cover}
+      alt={post.title}
+      className="h-full w-full object-cover bg-surface-2"
+      draggable={false}
+      onError={() => {
+        if (hasVideoMedia) setUseVideoFallback(true);
+      }}
+    />
   );
 }

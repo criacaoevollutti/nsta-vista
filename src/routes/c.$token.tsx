@@ -6,6 +6,9 @@ import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
 import { supabase } from "@/integrations/supabase/client";
 
+import { isVideoUrl } from "@/lib/utils";
+import { MediaThumb } from "@/components/MediaThumb";
+
 export const Route = createFileRoute("/c/$token")({
   ssr: false,
   head: () => ({
@@ -122,7 +125,7 @@ function SharedView() {
               onClick={() => setActive(p)}
               className="relative aspect-[4/5] overflow-hidden"
             >
-              <img src={p.thumb} alt={p.title} className="h-full w-full object-cover" />
+              <MediaThumb src={p.thumb} alt={p.title} className="h-full w-full object-cover" showPlayIcon />
               <StatusPill status={p.approval_status} />
             </button>
           ))}
@@ -158,6 +161,35 @@ function StatusPill({ status }: { status: SharedPost["approval_status"] }) {
         <MessageSquareWarning className="h-3 w-3" strokeWidth={2.5} />
       )}
     </div>
+  );
+}
+
+function SharedFeedCover({ post }: { post: SharedPost }) {
+  const [useVideoFallback, setUseVideoFallback] = useState(false);
+  const cover = post.thumb || post.media;
+  const hasVideoMedia = isVideoUrl(post.media);
+
+  if (isVideoUrl(cover) || useVideoFallback) {
+    return (
+      <video
+        src={post.media}
+        className="h-full w-full object-cover bg-surface-2"
+        muted
+        playsInline
+        preload="metadata"
+      />
+    );
+  }
+
+  return (
+    <img
+      src={cover}
+      alt={post.title}
+      className="h-full w-full object-cover bg-surface-2"
+      onError={() => {
+        if (hasVideoMedia) setUseVideoFallback(true);
+      }}
+    />
   );
 }
 
@@ -199,7 +231,7 @@ function PostReviewSheet({
         onClick={(e) => e.stopPropagation()}
       >
         {(() => {
-          const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(post.media || "");
+          const isVideo = isVideoUrl(post.media || "");
           const ratio = isVideo || post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]";
           return isVideo ? (
             <video src={post.media} controls playsInline preload="metadata" className={`w-full object-contain bg-black ${ratio}`} />
