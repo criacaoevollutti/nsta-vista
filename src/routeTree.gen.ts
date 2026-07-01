@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
+import { Route as CTokenRouteImport } from './routes/c.$token'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedPostIdRouteImport } from './routes/_authenticated.post.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -28,6 +30,16 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const CTokenRoute = CTokenRouteImport.update({
+  id: '/c/$token',
+  path: '/c/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedPostIdRoute = AuthenticatedPostIdRouteImport.update({
   id: '/post/$id',
   path: '/post/$id',
@@ -37,10 +49,14 @@ const AuthenticatedPostIdRoute = AuthenticatedPostIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/c/$token': typeof CTokenRoute
   '/post/$id': typeof AuthenticatedPostIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/c/$token': typeof CTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/post/$id': typeof AuthenticatedPostIdRoute
 }
@@ -48,18 +64,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/c/$token': typeof CTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/post/$id': typeof AuthenticatedPostIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/post/$id'
+  fullPaths: '/' | '/auth' | '/admin' | '/c/$token' | '/post/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/' | '/post/$id'
+  to: '/auth' | '/admin' | '/c/$token' | '/' | '/post/$id'
   id:
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/admin'
+    | '/c/$token'
     | '/_authenticated/'
     | '/_authenticated/post/$id'
   fileRoutesById: FileRoutesById
@@ -67,6 +87,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CTokenRoute: typeof CTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +113,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/c/$token': {
+      id: '/c/$token'
+      path: '/c/$token'
+      fullPath: '/c/$token'
+      preLoaderRoute: typeof CTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/post/$id': {
       id: '/_authenticated/post/$id'
       path: '/post/$id'
@@ -103,11 +138,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedPostIdRoute: typeof AuthenticatedPostIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedPostIdRoute: AuthenticatedPostIdRoute,
 }
@@ -119,6 +156,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
+  CTokenRoute: CTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
