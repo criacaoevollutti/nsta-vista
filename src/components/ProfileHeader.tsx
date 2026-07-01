@@ -110,10 +110,26 @@ export function ProfileHeader({
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({
+  value,
+  label,
+  editable,
+  onChange,
+}: {
+  value: string;
+  label: string;
+  editable?: boolean;
+  onChange?: (v: string) => void;
+}) {
   return (
     <div>
-      <div className="text-[16px] font-semibold tabular-nums leading-none">{value}</div>
+      <div className="text-[16px] font-semibold tabular-nums leading-none">
+        {editable && onChange ? (
+          <EditableText value={value} onChange={onChange} />
+        ) : (
+          value
+        )}
+      </div>
       <div className="text-[12px] text-muted-foreground mt-1">{label}</div>
     </div>
   );
