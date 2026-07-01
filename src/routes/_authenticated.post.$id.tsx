@@ -29,6 +29,58 @@ import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 const MAX_MB = 500;
 const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
 
+async function captureVideoThumbnail(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+    video.crossOrigin = "anonymous";
+    video.src = url;
+
+    const cleanup = () => URL.revokeObjectURL(url);
+    const fail = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    video.onloadedmetadata = () => {
+      const target = Math.max(0.1, (video.duration || 2) / 2);
+      const onSeeked = () => {
+        try {
+          const w = video.videoWidth;
+          const h = video.videoHeight;
+          if (!w || !h) return fail();
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return fail();
+          ctx.drawImage(video, 0, 0, w, h);
+          canvas.toBlob(
+            (b) => {
+              cleanup();
+              resolve(b);
+            },
+            "image/jpeg",
+            0.85,
+          );
+        } catch {
+          fail();
+        }
+      };
+      video.onseeked = onSeeked;
+      try {
+        video.currentTime = target;
+      } catch {
+        fail();
+      }
+    };
+    video.onerror = fail;
+  });
+}
+
 
 export const Route = createFileRoute("/_authenticated/post/$id")({
   ssr: false,
@@ -80,7 +132,23 @@ function PostPage() {
         .from("media")
         .createSignedUrl(path, 60 * 60 * 24 * 365);
       if (signErr || !signed) throw signErr ?? new Error("Falha ao gerar URL");
-      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: signed.signedUrl };
+      let thumbUrl = signed.signedUrl;
+      if (isVideo) {
+        const blob = await captureVideoThumbnail(file);
+        if (blob) {
+          const thumbPath = `${uid}/${post.id}-${Date.now()}-thumb.jpg`;
+          const { error: tErr } = await supabase.storage
+            .from("media")
+            .upload(thumbPath, blob, { contentType: "image/jpeg", upsert: true });
+          if (!tErr) {
+            const { data: tSigned } = await supabase.storage
+              .from("media")
+              .createSignedUrl(thumbPath, 60 * 60 * 24 * 365);
+            if (tSigned) thumbUrl = tSigned.signedUrl;
+          }
+        }
+      }
+      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: thumbUrl };
       if (isVideo && post.type !== "reel" && post.type !== "story" && post.type !== "video") {
         patch.type = "reel";
       }
