@@ -174,6 +174,10 @@ export const usePosts = create<PostsState>((set, get) => ({
     const state = get();
     const idx = state.posts.findIndex((p) => p.id === id);
     if (idx < 0 || !state.userId) return;
+    if (state.posts.length >= MAX_POSTS) {
+      toast.error(`Limite de ${MAX_POSTS} postagens por feed atingido`);
+      return;
+    }
     const orig = state.posts[idx];
     const tempId = crypto.randomUUID();
     const copy: Post = {
