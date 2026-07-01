@@ -10,7 +10,7 @@ import { CycleCelebration } from "@/components/CycleCelebration";
 import { usePosts } from "@/lib/store";
 import { profile } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   ssr: false,
   head: () => ({
     meta: [
