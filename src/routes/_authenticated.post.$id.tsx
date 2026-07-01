@@ -169,6 +169,45 @@ function PostPage() {
     }
   };
 
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !post) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Envie uma imagem para a capa.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Capa maior que 20MB.");
+      return;
+    }
+    setUploadingCover(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) throw new Error("Sessão expirada");
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${uid}/${post.id}-${Date.now()}-cover.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("media")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage
+        .from("media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (sErr || !signed) throw sErr ?? new Error("Falha ao gerar URL");
+      update(post.id, { thumb: signed.signedUrl });
+      toast.success("Capa atualizada");
+    } catch (err) {
+      console.error(err);
+      toast.error("Não foi possível enviar a capa");
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+
+
 
   if (!post) {
     return (
