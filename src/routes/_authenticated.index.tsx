@@ -29,6 +29,8 @@ function Home() {
   const posts = usePosts((s) => s.posts);
   const handle = useProfile((s) => s.profile.handle);
   const navigate = useNavigate();
+  const { user } = Route.useRouteContext();
+  const { isAdmin } = useIsAdmin(user.id);
   const approved = posts.filter((p) => p.status === "approved" || p.status === "published").length;
 
   const signOut = async () => {
@@ -42,13 +44,24 @@ function Home() {
         title={handle}
         subtitle="Projeção do feed"
         right={
-          <button
-            onClick={signOut}
-            title="Sair"
-            className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2 active:scale-95 transition"
-          >
-            <LogOut className="h-[18px] w-[18px]" />
-          </button>
+          <div className="flex items-center gap-1">
+            {isAdmin ? (
+              <Link
+                to="/admin"
+                title="Painel admin"
+                className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2 active:scale-95 transition"
+              >
+                <ShieldCheck className="h-[18px] w-[18px]" />
+              </Link>
+            ) : null}
+            <button
+              onClick={signOut}
+              title="Sair"
+              className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2 active:scale-95 transition"
+            >
+              <LogOut className="h-[18px] w-[18px]" />
+            </button>
+          </div>
         }
       />
       <div className="flex-1 overflow-y-auto">
