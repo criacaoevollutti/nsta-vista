@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Grid3x3, PlaySquare, UserSquare2 } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Grid3x3, LogOut, PlaySquare, UserSquare2 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
 import { ProfileHeader } from "@/components/ProfileHeader";
@@ -8,9 +8,10 @@ import { PostGrid } from "@/components/PostGrid";
 import { Timeline } from "@/components/Timeline";
 import { CycleCelebration } from "@/components/CycleCelebration";
 import { usePosts } from "@/lib/store";
-import { profile } from "@/lib/mock-data";
+import { useProfile } from "@/lib/profile-store";
+import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   ssr: false,
   head: () => ({
     meta: [
@@ -25,11 +26,30 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const posts = usePosts((s) => s.posts);
+  const handle = useProfile((s) => s.profile.handle);
+  const navigate = useNavigate();
   const approved = posts.filter((p) => p.status === "approved" || p.status === "published").length;
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth" });
+  };
 
   return (
     <AppFrame>
-      <TopBar title={profile.handle} subtitle="Projeção do feed" />
+      <TopBar
+        title={handle}
+        subtitle="Projeção do feed"
+        right={
+          <button
+            onClick={signOut}
+            title="Sair"
+            className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2 active:scale-95 transition"
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+          </button>
+        }
+      />
       <div className="flex-1 overflow-y-auto">
         <ProfileHeader approvedCount={approved} total={posts.length} />
         <Highlights />
