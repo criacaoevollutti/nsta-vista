@@ -172,9 +172,20 @@ function PostPage() {
           layoutId={`media-${post.id}`}
           className={`relative w-full bg-surface-2 ${post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`}
         >
-          <img src={post.media} alt={post.title} className="h-full w-full object-cover" />
-          {(post.type === "video" || post.type === "reel") ? (
-            <div className="absolute inset-0 grid place-items-center">
+          {isVideoUrl(post.media) ? (
+            <video
+              key={post.media}
+              src={post.media}
+              className="h-full w-full object-cover bg-black"
+              controls
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <img src={post.media} alt={post.title} className="h-full w-full object-cover" />
+          )}
+          {!isVideoUrl(post.media) && (post.type === "video" || post.type === "reel") ? (
+            <div className="absolute inset-0 grid place-items-center pointer-events-none">
               <div className="h-14 w-14 rounded-full bg-white/25 backdrop-blur-md grid place-items-center">
                 <Play className="h-6 w-6 text-white" fill="white" />
               </div>
@@ -186,10 +197,33 @@ function PostPage() {
             </div>
           ) : null}
 
-          <button className="absolute bottom-3 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition">
-            <Pencil className="h-3.5 w-3.5" /> Trocar mídia
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            className="hidden"
+            onChange={handleUpload}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="absolute bottom-3 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando…
+              </>
+            ) : (
+              <>
+                <Pencil className="h-3.5 w-3.5" /> Trocar mídia
+              </>
+            )}
           </button>
+          <div className="absolute bottom-3 left-3 h-7 px-2 rounded-full bg-black/45 text-white text-[10px] font-medium flex items-center gap-1">
+            <Film className="h-3 w-3" /> Máx {MAX_MB}MB · imagem ou vídeo
+          </div>
         </motion.div>
+
 
         {/* Editable fields */}
         <div className="p-5 space-y-4">
