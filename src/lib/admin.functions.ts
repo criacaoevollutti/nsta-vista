@@ -33,11 +33,10 @@ export const createClientCompany = createServerFn({ method: "POST" })
 
     const uid = created.user.id;
 
-    await supabaseAdmin.from("profiles").upsert({
-      id: uid,
+    await supabaseAdmin.from("profiles").update({
       name: data.name,
       handle: data.handle,
-    });
+    }).eq("id", uid);
 
     const { error: credErr } = await supabaseAdmin.from("client_credentials").upsert({
       user_id: uid,
