@@ -48,6 +48,55 @@ function PostPage() {
   const [supportText, setSupportText] = useState("");
   const [supportSent, setSupportSent] = useState(false);
   const [justApproved, setJustApproved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !post) return;
+    const isVideo = file.type.startsWith("video/");
+    const isImage = file.type.startsWith("image/");
+    if (!isVideo && !isImage) {
+      toast.error("Envie apenas imagem ou vídeo.");
+      return;
+    }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      toast.error(`Arquivo maior que ${MAX_MB}MB.`);
+      return;
+    }
+    setUploading(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) throw new Error("Sessão expirada");
+      const ext = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
+      const path = `${uid}/${post.id}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("media")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signErr || !signed) throw signErr ?? new Error("Falha ao gerar URL");
+      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: signed.signedUrl };
+      if (isVideo && post.type !== "reel" && post.type !== "story" && post.type !== "video") {
+        patch.type = "reel";
+      }
+      if (isImage && (post.type === "reel" || post.type === "video")) {
+        patch.type = "image";
+      }
+      update(post.id, patch);
+      toast.success(isVideo ? "Vídeo enviado" : "Imagem enviada");
+    } catch (err) {
+      console.error(err);
+      toast.error("Não foi possível enviar o arquivo");
+    } finally {
+      setUploading(false);
+    }
+  };
+
 
   if (!post) {
     return (
