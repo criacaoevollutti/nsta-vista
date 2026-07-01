@@ -111,6 +111,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_pin: string
           avatar: string
           bio: string
           category: string
@@ -126,6 +127,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_pin: string
           avatar?: string
           bio?: string
           category?: string
@@ -141,6 +143,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_pin?: string
           avatar?: string
           bio?: string
           category?: string
@@ -183,6 +186,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_unique_pin: { Args: never; Returns: string }
+      get_profile_by_pin: { Args: { _pin: string }; Returns: Json }
       get_shared_profile: { Args: { _token: string }; Returns: Json }
       has_role: {
         Args: {
@@ -197,6 +202,15 @@ export type Database = {
           _post_id: string
           _status: string
           _token: string
+        }
+        Returns: boolean
+      }
+      set_post_approval_by_pin: {
+        Args: {
+          _comment: string
+          _pin: string
+          _post_id: string
+          _status: string
         }
         Returns: boolean
       }

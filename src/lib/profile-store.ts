@@ -64,7 +64,8 @@ export const useProfile = create<ProfileState>((set, get) => ({
       };
       const { data: upserted } = await supabase
         .from("profiles")
-        .upsert(seed)
+        .update(seed)
+        .eq("id", userId)
         .select()
         .maybeSingle();
       if (upserted) {
