@@ -332,6 +332,32 @@ function PostPage() {
               </>
             )}
           </button>
+          {isVideoUrl(post.media) ? (
+            <>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleCoverUpload}
+              />
+              <button
+                onClick={() => coverInputRef.current?.click()}
+                disabled={uploadingCover}
+                className="absolute bottom-14 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
+              >
+                {uploadingCover ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando capa…
+                  </>
+                ) : (
+                  <>
+                    <Images className="h-3.5 w-3.5" /> Trocar capa
+                  </>
+                )}
+              </button>
+            </>
+          ) : null}
           <div className="absolute bottom-3 left-3 h-7 px-2 rounded-full bg-black/45 text-white text-[10px] font-medium flex items-center gap-1">
             <Film className="h-3 w-3" /> Máx {MAX_MB}MB · imagem ou vídeo
           </div>
@@ -341,10 +367,10 @@ function PostPage() {
         {/* Editable fields */}
         <div className="p-5 space-y-4">
           <EditableField
-            icon={<Type className="h-4 w-4" />}
-            label="Título"
-            value={post.title}
-            onChange={(v) => update(post.id, { title: v })}
+            icon={<Target className="h-4 w-4" />}
+            label="Objetivo da postagem"
+            value={post.objective}
+            onChange={(v) => update(post.id, { objective: v })}
           />
           <EditableField
             icon={<MessageSquare className="h-4 w-4" />}
@@ -354,12 +380,6 @@ function PostPage() {
             multiline
           />
           <EditableField
-            icon={<Target className="h-4 w-4" />}
-            label="Objetivo da postagem"
-            value={post.objective}
-            onChange={(v) => update(post.id, { objective: v })}
-          />
-          <EditableField
             icon={<Sparkles className="h-4 w-4" />}
             label="Observações internas"
             value={post.notes}
@@ -367,6 +387,8 @@ function PostPage() {
             onChange={(v) => update(post.id, { notes: v })}
             multiline
           />
+
+
 
           <div className="grid grid-cols-2 gap-3">
             <MetaField
