@@ -20,6 +20,7 @@ type Row = {
   handle: string;
   share_token: string;
   updated_at: string;
+  post_count: number;
 };
 
 function AdminPage() {
@@ -30,18 +31,29 @@ function AdminPage() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    void supabase
-      .from("profiles")
-      .select("id,name,handle,share_token,updated_at")
-      .order("updated_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (error) {
-          toast.error("Erro ao carregar clientes");
-          return;
-        }
-        setRows((data ?? []) as Row[]);
-      });
+    void (async () => {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("id,name,handle,share_token,updated_at")
+        .order("updated_at", { ascending: false });
+      if (error) {
+        toast.error("Erro ao carregar clientes");
+        return;
+      }
+      const list = profiles ?? [];
+      const counts = await Promise.all(
+        list.map((p) =>
+          supabase
+            .from("posts")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", p.id)
+            .then(({ count }) => count ?? 0),
+        ),
+      );
+      setRows(list.map((p, i) => ({ ...(p as Omit<Row, "post_count">), post_count: counts[i] })));
+    })();
   }, [isAdmin]);
+
 
   if (loading) {
     return (
