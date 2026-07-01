@@ -29,6 +29,58 @@ import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 const MAX_MB = 500;
 const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
 
+async function captureVideoThumbnail(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+    video.crossOrigin = "anonymous";
+    video.src = url;
+
+    const cleanup = () => URL.revokeObjectURL(url);
+    const fail = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    video.onloadedmetadata = () => {
+      const target = Math.max(0.1, (video.duration || 2) / 2);
+      const onSeeked = () => {
+        try {
+          const w = video.videoWidth;
+          const h = video.videoHeight;
+          if (!w || !h) return fail();
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return fail();
+          ctx.drawImage(video, 0, 0, w, h);
+          canvas.toBlob(
+            (b) => {
+              cleanup();
+              resolve(b);
+            },
+            "image/jpeg",
+            0.85,
+          );
+        } catch {
+          fail();
+        }
+      };
+      video.onseeked = onSeeked;
+      try {
+        video.currentTime = target;
+      } catch {
+        fail();
+      }
+    };
+    video.onerror = fail;
+  });
+}
+
 
 export const Route = createFileRoute("/_authenticated/post/$id")({
   ssr: false,
