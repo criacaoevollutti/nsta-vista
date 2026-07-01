@@ -1,7 +1,10 @@
 import { MapPin, Link2, MessageCircle, Globe, CalendarClock, BadgeCheck } from "lucide-react";
-import { profile } from "@/lib/mock-data";
+import { useProfile } from "@/lib/profile-store";
+import { EditableText } from "./EditableText";
 
 export function ProfileHeader({ approvedCount, total }: { approvedCount: number; total: number }) {
+  const profile = useProfile((s) => s.profile);
+  const update = useProfile((s) => s.update);
   const progress = Math.round((approvedCount / total) * 100);
   return (
     <section className="px-5 pt-4 pb-2">
