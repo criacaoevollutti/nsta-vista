@@ -52,15 +52,16 @@ export const useProfile = create<ProfileState>((set, get) => ({
     if (needsSeed) {
       const seed = {
         id: userId,
-        name: mockProfile.name,
-        handle: mockProfile.handle,
-        category: mockProfile.category,
-        bio: mockProfile.bio,
-        location: mockProfile.location,
-        site: mockProfile.site,
-        avatar: mockProfile.avatar,
-        followers: mockProfile.followers,
-        following: mockProfile.following,
+        // Preserve name/handle set at creation so each company stays distinct.
+        name: data?.name || mockProfile.name,
+        handle: data?.handle || mockProfile.handle,
+        category: data?.category || mockProfile.category,
+        bio: data?.bio || mockProfile.bio,
+        location: data?.location || mockProfile.location,
+        site: data?.site || mockProfile.site,
+        avatar: data?.avatar || mockProfile.avatar,
+        followers: data?.followers || mockProfile.followers,
+        following: data?.following ?? mockProfile.following,
       };
       const { data: upserted } = await supabase
         .from("profiles")
