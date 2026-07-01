@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Copy, ExternalLink, Loader2, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Copy, ExternalLink, Loader2, Pencil, ShieldAlert } from "lucide-react";
+
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -19,6 +20,7 @@ type Row = {
   handle: string;
   share_token: string;
   updated_at: string;
+  post_count: number;
 };
 
 function AdminPage() {
@@ -29,18 +31,29 @@ function AdminPage() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    void supabase
-      .from("profiles")
-      .select("id,name,handle,share_token,updated_at")
-      .order("updated_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (error) {
-          toast.error("Erro ao carregar clientes");
-          return;
-        }
-        setRows((data ?? []) as Row[]);
-      });
+    void (async () => {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("id,name,handle,share_token,updated_at")
+        .order("updated_at", { ascending: false });
+      if (error) {
+        toast.error("Erro ao carregar clientes");
+        return;
+      }
+      const list = profiles ?? [];
+      const counts = await Promise.all(
+        list.map((p) =>
+          supabase
+            .from("posts")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", p.id)
+            .then(({ count }) => count ?? 0),
+        ),
+      );
+      setRows(list.map((p, i) => ({ ...(p as Omit<Row, "post_count">), post_count: counts[i] })));
+    })();
   }, [isAdmin]);
+
 
   if (loading) {
     return (
@@ -106,30 +119,43 @@ function AdminPage() {
             const url = `${window.location.origin}/c/${r.share_token}`;
             return (
               <div key={r.id} className="rounded-2xl border border-hairline bg-card p-4 space-y-3">
-                <div>
-                  <div className="font-semibold">{r.name || "Sem nome"}</div>
-                  <div className="text-xs text-muted-foreground">@{r.handle}</div>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-semibold">{r.name || "Sem nome"}</div>
+                    <div className="text-xs text-muted-foreground">@{r.handle}</div>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-2 text-muted-foreground">
+                    {r.post_count}/12 posts
+                  </span>
                 </div>
                 <div className="text-xs font-mono bg-surface-2 rounded-lg p-2 break-all">
                   {url}
                 </div>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => copyLink(r.share_token)}
-                    className="flex-1 h-9 rounded-full bg-foreground text-background text-sm font-medium inline-flex items-center justify-center gap-2"
+                    className="h-9 rounded-full bg-foreground text-background text-sm font-medium inline-flex items-center justify-center gap-1.5"
                   >
-                    <Copy className="h-3.5 w-3.5" /> Copiar
+                    <Copy className="h-3.5 w-3.5" /> Link
                   </button>
                   <Link
                     to="/c/$token"
                     params={{ token: r.share_token }}
                     target="_blank"
-                    className="flex-1 h-9 rounded-full border border-hairline text-sm font-medium inline-flex items-center justify-center gap-2"
+                    className="h-9 rounded-full border border-hairline text-sm font-medium inline-flex items-center justify-center gap-1.5"
                   >
                     <ExternalLink className="h-3.5 w-3.5" /> Abrir
                   </Link>
+                  <Link
+                    to="/admin/edit/$userId"
+                    params={{ userId: r.id }}
+                    className="h-9 rounded-full bg-primary text-primary-foreground text-sm font-medium inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Editar
+                  </Link>
                 </div>
               </div>
+
             );
           })
         )}

@@ -15,6 +15,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.
 import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedPostIdRouteImport } from './routes/_authenticated.post.$id'
+import { Route as AuthenticatedAdminEditUserIdRouteImport } from './routes/_authenticated.admin.edit.$userId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -45,35 +46,56 @@ const AuthenticatedPostIdRoute = AuthenticatedPostIdRouteImport.update({
   path: '/post/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminEditUserIdRoute =
+  AuthenticatedAdminEditUserIdRouteImport.update({
+    id: '/edit/$userId',
+    path: '/edit/$userId',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/post/$id': typeof AuthenticatedPostIdRoute
+  '/admin/edit/$userId': typeof AuthenticatedAdminEditUserIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/post/$id': typeof AuthenticatedPostIdRoute
+  '/admin/edit/$userId': typeof AuthenticatedAdminEditUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/post/$id': typeof AuthenticatedPostIdRoute
+  '/_authenticated/admin/edit/$userId': typeof AuthenticatedAdminEditUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/admin' | '/c/$token' | '/post/$id'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/c/$token'
+    | '/post/$id'
+    | '/admin/edit/$userId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/admin' | '/c/$token' | '/' | '/post/$id'
+  to:
+    | '/auth'
+    | '/admin'
+    | '/c/$token'
+    | '/'
+    | '/post/$id'
+    | '/admin/edit/$userId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -82,6 +104,7 @@ export interface FileRouteTypes {
     | '/c/$token'
     | '/_authenticated/'
     | '/_authenticated/post/$id'
+    | '/_authenticated/admin/edit/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -134,17 +157,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPostIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/edit/$userId': {
+      id: '/_authenticated/admin/edit/$userId'
+      path: '/edit/$userId'
+      fullPath: '/admin/edit/$userId'
+      preLoaderRoute: typeof AuthenticatedAdminEditUserIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminEditUserIdRoute: typeof AuthenticatedAdminEditUserIdRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminEditUserIdRoute: AuthenticatedAdminEditUserIdRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedPostIdRoute: typeof AuthenticatedPostIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedPostIdRoute: AuthenticatedPostIdRoute,
 }

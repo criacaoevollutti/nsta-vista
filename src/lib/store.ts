@@ -1,8 +1,12 @@
 import { create } from "zustand";
+import { toast } from "sonner";
 import type { Post, PostStatus } from "./types";
 import { initialPosts } from "./mock-data";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
+
+export const MAX_POSTS = 12;
+
 
 interface PostsState {
   posts: Post[];
@@ -86,7 +90,7 @@ export const usePosts = create<PostsState>((set, get) => ({
 
     if (!data || data.length === 0) {
       // Seed initial demo posts on first sign-in
-      const seed = initialPosts.map((p, i) => ({
+      const seed = initialPosts.slice(0, MAX_POSTS).map((p, i) => ({
         user_id: userId,
         media: p.media,
         thumb: p.thumb,
@@ -170,6 +174,10 @@ export const usePosts = create<PostsState>((set, get) => ({
     const state = get();
     const idx = state.posts.findIndex((p) => p.id === id);
     if (idx < 0 || !state.userId) return;
+    if (state.posts.length >= MAX_POSTS) {
+      toast.error(`Limite de ${MAX_POSTS} postagens por feed atingido`);
+      return;
+    }
     const orig = state.posts[idx];
     const tempId = crypto.randomUUID();
     const copy: Post = {
