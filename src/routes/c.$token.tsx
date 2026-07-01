@@ -198,7 +198,11 @@ function PostReviewSheet({
         className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <img src={post.media || post.thumb} alt={post.title} className={`w-full object-cover ${post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`} />
+        {/\.(mp4|webm|mov|m4v)(\?|$)/i.test(post.media || "") ? (
+          <video src={post.media} controls playsInline preload="metadata" className={`w-full object-cover bg-black ${post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`} />
+        ) : (
+          <img src={post.media || post.thumb} alt={post.title} className={`w-full object-cover ${post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`} />
+        )}
         <div className="p-4 space-y-4">
           <div>
             <div className="text-xs text-muted-foreground">
