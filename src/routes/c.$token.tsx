@@ -120,7 +120,7 @@ function SharedView() {
             <button
               key={p.id}
               onClick={() => setActive(p)}
-              className="relative aspect-square overflow-hidden"
+              className="relative aspect-[4/5] overflow-hidden"
             >
               <img src={p.thumb} alt={p.title} className="h-full w-full object-cover" />
               <StatusPill status={p.approval_status} />
@@ -198,7 +198,7 @@ function PostReviewSheet({
         className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <img src={post.media || post.thumb} alt={post.title} className="w-full aspect-square object-cover" />
+        <img src={post.media || post.thumb} alt={post.title} className={`w-full object-cover ${post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`} />
         <div className="p-4 space-y-4">
           <div>
             <div className="text-xs text-muted-foreground">
