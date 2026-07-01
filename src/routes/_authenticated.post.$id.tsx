@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   CalendarClock,
@@ -8,6 +9,7 @@ import {
   Copy,
   Film,
   Images,
+  Loader2,
   MessageSquare,
   MoveHorizontal,
   Pencil,
@@ -21,7 +23,12 @@ import {
 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { usePosts } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
+
+const MAX_MB = 100;
+const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
+
 
 export const Route = createFileRoute("/_authenticated/post/$id")({
   ssr: false,
@@ -41,6 +48,55 @@ function PostPage() {
   const [supportText, setSupportText] = useState("");
   const [supportSent, setSupportSent] = useState(false);
   const [justApproved, setJustApproved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !post) return;
+    const isVideo = file.type.startsWith("video/");
+    const isImage = file.type.startsWith("image/");
+    if (!isVideo && !isImage) {
+      toast.error("Envie apenas imagem ou vídeo.");
+      return;
+    }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      toast.error(`Arquivo maior que ${MAX_MB}MB.`);
+      return;
+    }
+    setUploading(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) throw new Error("Sessão expirada");
+      const ext = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
+      const path = `${uid}/${post.id}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("media")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signErr || !signed) throw signErr ?? new Error("Falha ao gerar URL");
+      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: signed.signedUrl };
+      if (isVideo && post.type !== "reel" && post.type !== "story" && post.type !== "video") {
+        patch.type = "reel";
+      }
+      if (isImage && (post.type === "reel" || post.type === "video")) {
+        patch.type = "image";
+      }
+      update(post.id, patch);
+      toast.success(isVideo ? "Vídeo enviado" : "Imagem enviada");
+    } catch (err) {
+      console.error(err);
+      toast.error("Não foi possível enviar o arquivo");
+    } finally {
+      setUploading(false);
+    }
+  };
+
 
   if (!post) {
     return (
@@ -116,9 +172,20 @@ function PostPage() {
           layoutId={`media-${post.id}`}
           className={`relative w-full bg-surface-2 ${post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`}
         >
-          <img src={post.media} alt={post.title} className="h-full w-full object-cover" />
-          {(post.type === "video" || post.type === "reel") ? (
-            <div className="absolute inset-0 grid place-items-center">
+          {isVideoUrl(post.media) ? (
+            <video
+              key={post.media}
+              src={post.media}
+              className="h-full w-full object-cover bg-black"
+              controls
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <img src={post.media} alt={post.title} className="h-full w-full object-cover" />
+          )}
+          {!isVideoUrl(post.media) && (post.type === "video" || post.type === "reel") ? (
+            <div className="absolute inset-0 grid place-items-center pointer-events-none">
               <div className="h-14 w-14 rounded-full bg-white/25 backdrop-blur-md grid place-items-center">
                 <Play className="h-6 w-6 text-white" fill="white" />
               </div>
@@ -130,10 +197,33 @@ function PostPage() {
             </div>
           ) : null}
 
-          <button className="absolute bottom-3 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition">
-            <Pencil className="h-3.5 w-3.5" /> Trocar mídia
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            className="hidden"
+            onChange={handleUpload}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="absolute bottom-3 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando…
+              </>
+            ) : (
+              <>
+                <Pencil className="h-3.5 w-3.5" /> Trocar mídia
+              </>
+            )}
           </button>
+          <div className="absolute bottom-3 left-3 h-7 px-2 rounded-full bg-black/45 text-white text-[10px] font-medium flex items-center gap-1">
+            <Film className="h-3 w-3" /> Máx {MAX_MB}MB · imagem ou vídeo
+          </div>
         </motion.div>
+
 
         {/* Editable fields */}
         <div className="p-5 space-y-4">
