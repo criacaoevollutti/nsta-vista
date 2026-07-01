@@ -2,7 +2,15 @@ import { MapPin, Link2, MessageCircle, Globe, CalendarClock, BadgeCheck } from "
 import { useProfile } from "@/lib/profile-store";
 import { EditableText } from "./EditableText";
 
-export function ProfileHeader({ approvedCount, total }: { approvedCount: number; total: number }) {
+export function ProfileHeader({
+  approvedCount,
+  total,
+  editable = false,
+}: {
+  approvedCount: number;
+  total: number;
+  editable?: boolean;
+}) {
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
   const progress = Math.round((approvedCount / total) * 100);
@@ -21,8 +29,18 @@ export function ProfileHeader({ approvedCount, total }: { approvedCount: number;
         </div>
         <div className="flex-1 grid grid-cols-3 gap-1 text-center">
           <Stat value={total.toString()} label="posts" />
-          <Stat value={profile.followers} label="seguidores" />
-          <Stat value={profile.following.toString()} label="seguindo" />
+          <Stat
+            value={profile.followers}
+            label="seguidores"
+            editable={editable}
+            onChange={(followers) => update({ followers })}
+          />
+          <Stat
+            value={profile.following.toString()}
+            label="seguindo"
+            editable={editable}
+            onChange={(v) => update({ following: Number(v.replace(/\D/g, "")) || 0 })}
+          />
         </div>
       </div>
 
@@ -92,10 +110,26 @@ export function ProfileHeader({ approvedCount, total }: { approvedCount: number;
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({
+  value,
+  label,
+  editable,
+  onChange,
+}: {
+  value: string;
+  label: string;
+  editable?: boolean;
+  onChange?: (v: string) => void;
+}) {
   return (
     <div>
-      <div className="text-[16px] font-semibold tabular-nums leading-none">{value}</div>
+      <div className="text-[16px] font-semibold tabular-nums leading-none">
+        {editable && onChange ? (
+          <EditableText value={value} onChange={onChange} />
+        ) : (
+          value
+        )}
+      </div>
       <div className="text-[12px] text-muted-foreground mt-1">{label}</div>
     </div>
   );
