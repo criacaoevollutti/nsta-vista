@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { supabase } from "@/integrations/supabase/client";
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
@@ -125,6 +126,34 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+
+    // On a hard refresh the initial backend session can be restored after the
+    // client router has already matched the protected route. Invalidating once
+    // after that session exists prevents the route from staying visually blank.
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) void router.invalidate();
+    });
+
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+
+      void router.invalidate();
+      if (event === "SIGNED_OUT") {
+        queryClient.clear();
+        return;
+      }
+      if (session) void queryClient.invalidateQueries();
+    });
+
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
+  }, [queryClient, router]);
 
   return (
     <QueryClientProvider client={queryClient}>
