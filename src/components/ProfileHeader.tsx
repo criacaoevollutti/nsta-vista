@@ -1,7 +1,10 @@
 import { MapPin, Link2, MessageCircle, Globe, CalendarClock, BadgeCheck } from "lucide-react";
-import { profile } from "@/lib/mock-data";
+import { useProfile } from "@/lib/profile-store";
+import { EditableText } from "./EditableText";
 
 export function ProfileHeader({ approvedCount, total }: { approvedCount: number; total: number }) {
+  const profile = useProfile((s) => s.profile);
+  const update = useProfile((s) => s.update);
   const progress = Math.round((approvedCount / total) * 100);
   return (
     <section className="px-5 pt-4 pb-2">
@@ -26,20 +29,43 @@ export function ProfileHeader({ approvedCount, total }: { approvedCount: number;
       {/* Identity */}
       <div className="mt-4">
         <div className="flex items-center gap-1.5">
-          <h1 className="text-[15px] font-semibold tracking-tight">{profile.name}</h1>
+          <EditableText
+            as="h1"
+            value={profile.name}
+            onChange={(name) => update({ name })}
+            className="text-[15px] font-semibold tracking-tight"
+          />
           <BadgeCheck className="h-4 w-4 text-brand-purple" fill="currentColor" strokeWidth={0} />
         </div>
-        <div className="text-[13px] text-muted-foreground mt-0.5">{profile.category}</div>
-        <p className="text-[13.5px] mt-2 leading-snug whitespace-pre-line">{profile.bio}</p>
+        <EditableText
+          as="div"
+          value={profile.category}
+          onChange={(category) => update({ category })}
+          className="text-[13px] text-muted-foreground mt-0.5"
+        />
+        <EditableText
+          as="p"
+          multiline
+          value={profile.bio}
+          onChange={(bio) => update({ bio })}
+          className="text-[13.5px] mt-2 leading-snug whitespace-pre-line block"
+        />
         <div className="flex items-center gap-1 mt-1.5 text-[13px] text-muted-foreground">
           <MapPin className="h-3.5 w-3.5" />
-          <span>{profile.location}</span>
+          <EditableText
+            value={profile.location}
+            onChange={(location) => update({ location })}
+          />
         </div>
-        <a className="flex items-center gap-1 mt-0.5 text-[13px] text-brand-purple font-medium">
+        <div className="flex items-center gap-1 mt-0.5 text-[13px] text-brand-purple font-medium">
           <Link2 className="h-3.5 w-3.5" />
-          {profile.site}
-        </a>
+          <EditableText
+            value={profile.site}
+            onChange={(site) => update({ site })}
+          />
+        </div>
       </div>
+
 
       {/* CTA row */}
       <div className="grid grid-cols-4 gap-2 mt-4">
