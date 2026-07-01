@@ -132,7 +132,23 @@ function PostPage() {
         .from("media")
         .createSignedUrl(path, 60 * 60 * 24 * 365);
       if (signErr || !signed) throw signErr ?? new Error("Falha ao gerar URL");
-      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: signed.signedUrl };
+      let thumbUrl = signed.signedUrl;
+      if (isVideo) {
+        const blob = await captureVideoThumbnail(file);
+        if (blob) {
+          const thumbPath = `${uid}/${post.id}-${Date.now()}-thumb.jpg`;
+          const { error: tErr } = await supabase.storage
+            .from("media")
+            .upload(thumbPath, blob, { contentType: "image/jpeg", upsert: true });
+          if (!tErr) {
+            const { data: tSigned } = await supabase.storage
+              .from("media")
+              .createSignedUrl(thumbPath, 60 * 60 * 24 * 365);
+            if (tSigned) thumbUrl = tSigned.signedUrl;
+          }
+        }
+      }
+      const patch: Partial<typeof post> = { media: signed.signedUrl, thumb: thumbUrl };
       if (isVideo && post.type !== "reel" && post.type !== "story" && post.type !== "video") {
         patch.type = "reel";
       }
