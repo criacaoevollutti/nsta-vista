@@ -57,7 +57,7 @@ function AdminPage() {
       <AppFrame>
         <TopBar
           title="Acesso restrito"
-          left={
+          right={
             <button onClick={() => navigate({ to: "/" })} className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2">
               <ArrowLeft className="h-[18px] w-[18px]" />
             </button>
@@ -86,7 +86,7 @@ function AdminPage() {
       <TopBar
         title="Clientes"
         subtitle="Envie o link de aprovação"
-        left={
+        right={
           <button onClick={() => navigate({ to: "/" })} className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2">
             <ArrowLeft className="h-[18px] w-[18px]" />
           </button>
