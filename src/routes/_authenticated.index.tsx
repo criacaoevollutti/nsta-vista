@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Grid3x3, LogOut, PlaySquare, UserSquare2 } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Grid3x3, LogOut, PlaySquare, ShieldCheck, UserSquare2 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
 import { ProfileHeader } from "@/components/ProfileHeader";
@@ -10,6 +10,7 @@ import { CycleCelebration } from "@/components/CycleCelebration";
 import { usePosts } from "@/lib/store";
 import { useProfile } from "@/lib/profile-store";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/")({
   ssr: false,
