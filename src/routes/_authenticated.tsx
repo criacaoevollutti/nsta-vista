@@ -8,12 +8,13 @@ import { useProfile } from "@/lib/profile-store";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    // Skip on server — no Supabase session exists during SSR, and ssr:false
-    // means the component tree won't render server-side anyway.
-    if (typeof window === "undefined") return { user: null as unknown as { id: string } };
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-    return { user: data.user };
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error || !session?.user) throw redirect({ to: "/auth" });
+    return { user: session.user };
   },
   component: AuthenticatedLayout,
 });
