@@ -14,7 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      posts: {
+        Row: {
+          caption: string
+          created_at: string
+          date: string
+          id: string
+          media: string
+          notes: string
+          objective: string
+          position: number
+          status: string
+          thumb: string
+          time: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string
+          created_at?: string
+          date?: string
+          id?: string
+          media?: string
+          notes?: string
+          objective?: string
+          position?: number
+          status?: string
+          thumb?: string
+          time?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          date?: string
+          id?: string
+          media?: string
+          notes?: string
+          objective?: string
+          position?: number
+          status?: string
+          thumb?: string
+          time?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar: string
+          bio: string
+          category: string
+          created_at: string
+          followers: string
+          following: number
+          handle: string
+          id: string
+          location: string
+          name: string
+          site: string
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string
+          bio?: string
+          category?: string
+          created_at?: string
+          followers?: string
+          following?: number
+          handle?: string
+          id: string
+          location?: string
+          name?: string
+          site?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string
+          bio?: string
+          category?: string
+          created_at?: string
+          followers?: string
+          following?: number
+          handle?: string
+          id?: string
+          location?: string
+          name?: string
+          site?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
