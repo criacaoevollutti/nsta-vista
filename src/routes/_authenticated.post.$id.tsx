@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   CalendarClock,
@@ -8,6 +9,7 @@ import {
   Copy,
   Film,
   Images,
+  Loader2,
   MessageSquare,
   MoveHorizontal,
   Pencil,
@@ -21,7 +23,12 @@ import {
 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { usePosts } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
+
+const MAX_MB = 100;
+const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
+
 
 export const Route = createFileRoute("/_authenticated/post/$id")({
   ssr: false,
