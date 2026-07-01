@@ -170,7 +170,7 @@ function PostPage() {
         {/* Media */}
         <motion.div
           layoutId={`media-${post.id}`}
-          className={`relative w-full bg-surface-2 ${post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`}
+          className={`relative w-full bg-surface-2 ${isVideoUrl(post.media) || post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`}
         >
           {isVideoUrl(post.media) ? (
             <video
