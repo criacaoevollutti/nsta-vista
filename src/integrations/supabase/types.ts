@@ -189,6 +189,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_update_profile: {
+        Args: { _admin_pin: string; _patch: Json; _target_id: string }
+        Returns: boolean
+      }
       generate_unique_pin: { Args: never; Returns: string }
       get_admin_data_by_pin: { Args: { _pin: string }; Returns: Json }
       get_profile_by_pin: { Args: { _pin: string }; Returns: Json }
