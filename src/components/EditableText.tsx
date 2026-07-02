@@ -54,9 +54,10 @@ export function EditableText({
         if (next !== value) onChange(next);
       }}
       className={cn(
-        "outline-none rounded-sm px-0.5 -mx-0.5 focus:bg-surface-2 focus:ring-1 focus:ring-brand-purple/30 hover:bg-surface-2/60 transition-colors cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/60",
+        "outline-none rounded-sm px-0.5 -mx-0.5 text-black focus:bg-white focus:ring-1 focus:ring-brand-purple/30 hover:bg-slate-50 transition-colors cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/60",
         className,
       )}
+
     />
   );
 }
