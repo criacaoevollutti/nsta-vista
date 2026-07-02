@@ -261,6 +261,7 @@ function ClientFeed({
   const [prof, setProf] = useState(profile);
   const [savingBio, setSavingBio] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [creatingSlot, setCreatingSlot] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const approvedCount = posts.filter((p) => p.approval_status === "approved").length;
   const isAdmin = adminPin !== null;
