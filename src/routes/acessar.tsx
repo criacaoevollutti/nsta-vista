@@ -334,15 +334,16 @@ function ClientFeed({
             <div className="font-semibold truncate">{prof.name}</div>
             <div className="text-xs text-muted-foreground">{prof.category}</div>
             {isAdmin ? (
-              <textarea
-                defaultValue={prof.bio}
-                onBlur={(e) => void onBioBlur(e.target.value)}
-                rows={3}
-                placeholder="Bio da empresa…"
-                className="mt-2 w-full rounded-lg border border-hairline bg-background p-2 text-sm resize-none focus:outline-none focus:border-purple-400"
+              <EditableText
+                as="p"
+                multiline
+                value={prof.bio}
+                onChange={(bio) => void onBioBlur(bio)}
+                placeholder="Clique para adicionar a bio…"
+                className="text-sm mt-2 leading-snug whitespace-pre-line block"
               />
             ) : prof.bio ? (
-              <p className="text-sm mt-1 line-clamp-3 whitespace-pre-wrap">{prof.bio}</p>
+              <p className="text-sm mt-2 leading-snug whitespace-pre-line">{prof.bio}</p>
             ) : null}
             {savingBio ? <div className="text-[11px] text-muted-foreground mt-1">Salvando…</div> : null}
           </div>
