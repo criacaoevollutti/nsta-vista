@@ -381,15 +381,11 @@ function ClientFeed({
 
           <div className="mt-3 text-left">
             {isAdmin ? (
-              <EditableText as="div" value={prof.name} onChange={(name) => { setProf((p) => ({ ...p, name })); void saveProfile({ name }); }} className="font-semibold text-sm" />
-            ) : (
-              <div className="font-semibold text-sm">{prof.name}</div>
-            )}
-            {isAdmin ? (
               <EditableText as="div" value={prof.category} onChange={(category) => { setProf((p) => ({ ...p, category })); void saveProfile({ category }); }} className="text-xs text-muted-foreground" />
-            ) : (
+            ) : prof.category ? (
               <div className="text-xs text-muted-foreground">{prof.category}</div>
-            )}
+            ) : null}
+
             {isAdmin ? (
               <EditableText
                 as="p"
