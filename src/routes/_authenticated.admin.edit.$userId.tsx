@@ -28,21 +28,23 @@ function AdminEditPage() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    // Swap stores to the target company; restore admin's own data on unmount.
-    usePosts.getState().reset();
-    useProfile.getState().reset();
-    void Promise.all([
-      useProfile.getState().hydrate(targetId),
-      usePosts.getState().hydrate(targetId),
-    ]).then(() => setReady(true));
-
-    return () => {
-      usePosts.getState().reset();
-      useProfile.getState().reset();
-      void useProfile.getState().hydrate(user.id);
-      void usePosts.getState().hydrate(user.id);
-    };
-  }, [isAdmin, targetId, user.id]);
+    const profileState = useProfile.getState();
+    const postsState = usePosts.getState();
+    // Only reset+rehydrate when switching to a different company.
+    if (profileState.userId !== targetId || postsState.userId !== targetId) {
+      profileState.reset();
+      postsState.reset();
+      void Promise.all([
+        useProfile.getState().hydrate(targetId),
+        usePosts.getState().hydrate(targetId),
+      ]).then(() => setReady(true));
+    } else {
+      setReady(true);
+    }
+    // Note: no cleanup — we intentionally keep the target loaded.
+    // Returning to /admin does not need admin's own profile data,
+    // and the index route will rehydrate itself if visited next.
+  }, [isAdmin, targetId]);
 
   if (loading || (isAdmin && !ready)) {
     return (
