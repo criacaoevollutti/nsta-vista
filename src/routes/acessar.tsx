@@ -428,7 +428,7 @@ function ClientFeed({
         </div>
 
         <div className="grid grid-cols-3 gap-[2px] bg-background">
-          {posts.map((p) => (
+          {posts.slice(0, 12).map((p) => (
             <button
               key={p.id}
               onClick={() => setActive(p)}
@@ -438,6 +438,31 @@ function ClientFeed({
               <StatusPill status={p.approval_status} />
             </button>
           ))}
+          {isAdmin
+            ? Array.from({ length: Math.max(0, 12 - posts.length) }).map((_, i) => (
+                <button
+                  key={`empty-${i}`}
+                  disabled={creatingSlot}
+                  onClick={async () => {
+                    setCreatingSlot(true);
+                    const { data, error } = await supabase.rpc("admin_create_post_for", {
+                      _admin_pin: adminPin!,
+                      _target_id: prof.id,
+                      _position: posts.length + i,
+                    });
+                    setCreatingSlot(false);
+                    if (error || !data) { toast.error("Não foi possível criar postagem"); return; }
+                    const np = data as unknown as SharedPost;
+                    setPosts((prev) => [...prev, np]);
+                    setActive(np);
+                  }}
+                  className="relative aspect-[4/5] overflow-hidden bg-surface-2 border border-dashed border-border/60 grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-foreground transition-colors disabled:opacity-50"
+                  aria-label="Adicionar postagem"
+                >
+                  {creatingSlot ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-6 w-6" />}
+                </button>
+              ))
+            : null}
         </div>
       </div>
 
