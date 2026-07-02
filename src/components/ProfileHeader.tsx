@@ -129,18 +129,4 @@ function Stat({
   );
 }
 
-function CTA({ icon, label, primary }: { icon: React.ReactNode; label: string; primary?: boolean }) {
-  return (
-    <button
-      className={`h-9 rounded-full text-[12.5px] font-medium flex items-center justify-center gap-1.5 border transition active:scale-[0.97] ${
-        primary
-          ? "text-white border-transparent shadow-[var(--shadow-glow-purple)]"
-          : "bg-surface hover:bg-surface-2 border-hairline text-foreground"
-      }`}
-      style={primary ? { background: "var(--gradient-brand)" } : undefined}
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
-}
+
