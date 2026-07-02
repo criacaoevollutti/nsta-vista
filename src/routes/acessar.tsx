@@ -247,7 +247,7 @@ function ClientFeed({
     const { data, error } = await supabase.rpc("admin_update_profile", {
       _admin_pin: adminPin!,
       _target_id: prof.id,
-      _patch: patch as Record<string, unknown>,
+      _patch: patch as unknown as never,
     });
     if (error || !data) {
       toast.error("Não foi possível salvar");
