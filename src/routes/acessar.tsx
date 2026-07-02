@@ -8,6 +8,7 @@ import { Highlights } from "@/components/Highlights";
 import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
+import { EditableText } from "@/components/EditableText";
 
 export const Route = createFileRoute("/acessar")({
   ssr: false,
