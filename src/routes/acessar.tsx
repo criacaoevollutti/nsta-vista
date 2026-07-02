@@ -590,3 +590,152 @@ function PostReviewSheet({
     </div>
   );
 }
+
+function AdminPostEditor({
+  post,
+  adminPin,
+  onClose,
+  onUpdated,
+  onDeleted,
+}: {
+  post: SharedPost;
+  adminPin: string;
+  onClose: () => void;
+  onUpdated: (p: SharedPost) => void;
+  onDeleted: (id: string) => void;
+}) {
+  const [form, setForm] = useState({
+    title: post.title,
+    caption: post.caption,
+    date: post.date,
+    time: post.time,
+    type: post.type,
+    media: post.media,
+    thumb: post.thumb,
+  });
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const isVideo = isVideoUrl(form.media || "");
+  const ratio = isVideo || form.type === "reel" || form.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]";
+
+  const upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 500 * 1024 * 1024) { toast.error("Arquivo maior que 500MB"); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "bin";
+      const path = `pin/${post.id}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("media").upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage.from("media").createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (sErr || !signed) throw sErr ?? new Error("sign fail");
+      const isVid = file.type.startsWith("video/");
+      setForm((f) => ({ ...f, media: signed.signedUrl, thumb: signed.signedUrl, type: isVid ? (f.type === "reel" || f.type === "story" ? f.type : "reel") : (f.type === "reel" || f.type === "story" || f.type === "video" ? "image" : f.type) }));
+      toast.success("Mídia enviada");
+    } catch (err) {
+      console.error(err);
+      toast.error("Falha no envio");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const save = async () => {
+    setSaving(true);
+    const { data, error } = await supabase.rpc("admin_update_post", {
+      _admin_pin: adminPin,
+      _post_id: post.id,
+      _patch: form as unknown as never,
+    });
+    setSaving(false);
+    if (error || !data) { toast.error("Não foi possível salvar"); return; }
+    toast.success("Salvo");
+    onUpdated({ ...post, ...form });
+  };
+
+  const remove = async () => {
+    if (!window.confirm("Excluir esta postagem?")) return;
+    setDeleting(true);
+    const { data, error } = await supabase.rpc("admin_delete_post", { _admin_pin: adminPin, _post_id: post.id });
+    setDeleting(false);
+    if (error || !data) { toast.error("Falha ao excluir"); return; }
+    onDeleted(post.id);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="relative bg-black">
+          {form.media && isVideo ? (
+            <video src={form.media} controls playsInline preload="metadata" className={`w-full object-contain ${ratio}`} />
+          ) : form.media ? (
+            <img src={form.media} alt={form.title} className={`w-full object-cover ${ratio}`} />
+          ) : (
+            <div className={`w-full ${ratio} grid place-items-center text-white/60 text-sm`}>Sem mídia</div>
+          )}
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="absolute bottom-3 right-3 h-10 px-3 rounded-full text-white text-xs font-semibold shadow-md inline-flex items-center gap-1.5 disabled:opacity-60"
+            style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+            Trocar mídia
+          </button>
+          <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={upload} />
+        </div>
+
+        <div className="p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs">
+              <span className="text-muted-foreground">Data</span>
+              <input type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
+            </label>
+            <label className="text-xs">
+              <span className="text-muted-foreground">Hora</span>
+              <input type="time" value={form.time} onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
+            </label>
+          </div>
+
+          <label className="text-xs block">
+            <span className="text-muted-foreground">Tipo</span>
+            <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm">
+              <option value="image">Imagem</option>
+              <option value="carousel">Carrossel</option>
+              <option value="video">Vídeo</option>
+              <option value="reel">Reels</option>
+              <option value="story">Stories</option>
+            </select>
+          </label>
+
+          <label className="text-xs block">
+            <span className="text-muted-foreground">Título</span>
+            <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
+          </label>
+
+          <label className="text-xs block">
+            <span className="text-muted-foreground">Legenda</span>
+            <textarea value={form.caption} onChange={(e) => setForm((f) => ({ ...f, caption: e.target.value }))} rows={5} className="mt-1 w-full rounded-md border border-hairline bg-background p-2 text-sm resize-none" />
+          </label>
+
+          <div className="flex gap-2 pt-2">
+            <button onClick={remove} disabled={deleting || saving} className="h-11 px-3 rounded-full border border-hairline text-sm text-status-revision inline-flex items-center gap-1.5 disabled:opacity-50">
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareWarning className="h-4 w-4" />}
+              Excluir
+            </button>
+            <button onClick={save} disabled={saving} className="flex-1 h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-50" style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+              Salvar
+            </button>
+          </div>
+          <button onClick={onClose} className="w-full text-sm text-muted-foreground py-2">Fechar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
