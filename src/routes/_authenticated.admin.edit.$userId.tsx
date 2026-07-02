@@ -86,7 +86,7 @@ function AdminEditPage() {
         <div className="bg-primary/10 text-xs text-center py-1.5 border-b border-hairline">
           Modo admin — editando feed de @{handle}
         </div>
-        <ProfileHeader approvedCount={approved} total={posts.length} editable />
+        <ProfileHeader approvedCount={approved} total={shown} editable />
         <Highlights />
         <div className="grid grid-cols-3 border-b border-hairline">
           <TabButton icon={<Grid3x3 className="h-[18px] w-[18px]" />} active />
