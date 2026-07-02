@@ -123,6 +123,7 @@ export type Database = {
           is_admin: boolean
           location: string
           name: string
+          posts_count: number | null
           share_token: string
           site: string
           updated_at: string
@@ -140,6 +141,7 @@ export type Database = {
           is_admin?: boolean
           location?: string
           name?: string
+          posts_count?: number | null
           share_token?: string
           site?: string
           updated_at?: string
@@ -157,6 +159,7 @@ export type Database = {
           is_admin?: boolean
           location?: string
           name?: string
+          posts_count?: number | null
           share_token?: string
           site?: string
           updated_at?: string

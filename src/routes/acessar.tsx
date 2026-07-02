@@ -44,7 +44,9 @@ type SharedProfile = {
   avatar: string;
   followers: string;
   following: number;
+  posts_count: number | null;
 };
+
 
 
 type AdminProfile = {
@@ -346,9 +348,14 @@ function ClientFeed({
             )}
             <div className="grid grid-cols-3 gap-2 mt-3 text-center">
               <div>
-                <div className="font-semibold tabular-nums text-[15px]">{Math.min(posts.length, 12)}</div>
+                {isAdmin ? (
+                  <EditableText value={String(prof.posts_count ?? Math.min(posts.length, 12))} onChange={(v) => { const n = Number(v.replace(/\D/g, "")) || 0; setProf((p) => ({ ...p, posts_count: n })); void saveProfile({ posts_count: n } as never); }} className="font-semibold tabular-nums text-[15px] block" />
+                ) : (
+                  <div className="font-semibold tabular-nums text-[15px]">{prof.posts_count ?? Math.min(posts.length, 12)}</div>
+                )}
                 <div className="text-[12px] text-muted-foreground">posts</div>
               </div>
+
               <div>
                 {isAdmin ? (
                   <EditableText value={prof.followers} onChange={(followers) => { setProf((p) => ({ ...p, followers })); void saveProfile({ followers }); }} className="font-semibold tabular-nums text-[15px] block" />
