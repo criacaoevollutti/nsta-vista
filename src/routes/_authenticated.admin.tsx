@@ -196,7 +196,13 @@ function AdminPage() {
                           : undefined
                       }
                     >
-                      <button onClick={() => setSelectedId(r.id)} className="w-full text-left">
+                      <Link
+                        to="/admin/edit/$userId"
+                        params={{ userId: r.id }}
+                        preload="intent"
+                        onMouseEnter={() => setSelectedId(r.id)}
+                        className="block w-full text-left"
+                      >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="font-semibold truncate">{r.name || "Sem nome"}</div>
@@ -206,7 +212,7 @@ function AdminPage() {
                             className="text-[10px] font-mono px-2 py-0.5 rounded-full"
                             style={{ background: "#fff7ed", color: ORANGE }}
                           >
-                            {r.post_count}/12
+                            {Math.min(r.post_count, 12)}/12
                           </span>
                         </div>
                         <div className="mt-3 flex items-center justify-between">
@@ -215,16 +221,19 @@ function AdminPage() {
                             {r.access_pin}
                           </div>
                         </div>
-                      </button>
-                      <Link
-                        to="/admin/edit/$userId"
-                        params={{ userId: r.id }}
-                        preload="intent"
-                        className="mt-3 w-full h-9 rounded-full text-xs font-medium inline-flex items-center justify-center gap-1.5 text-white"
-                        style={{ background: `linear-gradient(135deg, ${PURPLE}, ${ORANGE})` }}
-                      >
-                        <Pencil className="h-3.5 w-3.5" /> Abrir editor
+                        <div
+                          className="mt-3 w-full h-9 rounded-full text-xs font-medium inline-flex items-center justify-center gap-1.5 text-white"
+                          style={{ background: `linear-gradient(135deg, ${PURPLE}, ${ORANGE})` }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" /> Abrir editor
+                        </div>
                       </Link>
+                      <button
+                        onClick={() => setSelectedId(r.id)}
+                        className="mt-2 w-full text-[11px] text-slate-500 hover:text-slate-700"
+                      >
+                        Ver detalhes
+                      </button>
                     </div>
                   </li>
                 );

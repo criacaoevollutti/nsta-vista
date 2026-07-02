@@ -31,7 +31,8 @@ function Home() {
   const navigate = useNavigate();
   const { user } = Route.useRouteContext();
   const { isAdmin } = useIsAdmin(user?.id);
-  const approved = posts.filter((p) => p.status === "approved" || p.status === "published").length;
+  const shown = Math.min(posts.length, 12);
+  const approved = posts.slice(0, 12).filter((p) => p.status === "approved" || p.status === "published").length;
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -65,7 +66,7 @@ function Home() {
         }
       />
       <div className="flex-1 overflow-y-auto">
-        <ProfileHeader approvedCount={approved} total={posts.length} editable={isAdmin} />
+        <ProfileHeader approvedCount={approved} total={shown} editable={isAdmin} />
         <Highlights />
 
         {/* Tab bar (visual only, mimics IG) */}

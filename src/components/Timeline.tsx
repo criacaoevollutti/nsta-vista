@@ -11,7 +11,7 @@ function fmt(iso: string) {
 }
 
 export function Timeline() {
-  const posts = usePosts((s) => s.posts);
+  const posts = usePosts((s) => s.posts).slice(0, 12);
   return (
     <section className="px-5 pt-6 pb-24">
       <div className="flex items-center gap-2 mb-3">
