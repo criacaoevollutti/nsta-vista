@@ -468,15 +468,31 @@ function ClientFeed({
       </div>
 
       {active ? (
-        <PostReviewSheet
-          post={active}
-          pin={pin}
-          onClose={() => setActive(null)}
-          onUpdated={(updated) => {
-            setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-            setActive(updated);
-          }}
-        />
+        isAdmin ? (
+          <AdminPostEditor
+            post={active}
+            adminPin={adminPin!}
+            onClose={() => setActive(null)}
+            onUpdated={(updated) => {
+              setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+              setActive(updated);
+            }}
+            onDeleted={(id) => {
+              setPosts((prev) => prev.filter((p) => p.id !== id));
+              setActive(null);
+            }}
+          />
+        ) : (
+          <PostReviewSheet
+            post={active}
+            pin={pin}
+            onClose={() => setActive(null)}
+            onUpdated={(updated) => {
+              setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+              setActive(updated);
+            }}
+          />
+        )
       ) : null}
     </AppFrame>
   );
