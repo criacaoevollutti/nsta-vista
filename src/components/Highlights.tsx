@@ -108,7 +108,13 @@ export function Highlights() {
                   }}
                 />
               </div>
-              <span className="text-[11px] text-foreground/80 max-w-[70px] truncate">{h.name}</span>
+              <EditableText
+                as="span"
+                value={names[h.id] ?? h.name}
+                onChange={(v) => renameHighlight(h.id, v || h.name)}
+                className="text-[11px] text-foreground/80 max-w-[70px] truncate block text-center"
+                placeholder="Nome"
+              />
             </div>
           );
         })}
