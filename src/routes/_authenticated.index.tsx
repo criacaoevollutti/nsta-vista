@@ -66,7 +66,7 @@ function Home() {
         }
       />
       <div className="flex-1 overflow-y-auto">
-        <ProfileHeader approvedCount={approved} total={posts.length} editable={isAdmin} />
+        <ProfileHeader approvedCount={approved} total={shown} editable={isAdmin} />
         <Highlights />
 
         {/* Tab bar (visual only, mimics IG) */}
