@@ -21,7 +21,9 @@ interface PostsState {
   setStatus: (id: string, status: PostStatus) => void;
   duplicate: (id: string) => void;
   remove: (id: string) => void;
+  createAt: (position: number) => Promise<string | null>;
 }
+
 
 type PostRow = {
   id: string;
