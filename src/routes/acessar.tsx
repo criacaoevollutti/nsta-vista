@@ -339,16 +339,17 @@ function ClientFeed({
             <div className="flex-1 min-w-0">
               <div className="mb-2">
                 {isAdmin ? (
-                  <EditableText as="div" value={prof.name} onChange={(name) => { setProf((p) => ({ ...p, name })); void saveProfile({ name }); }} className="font-semibold text-[15px] leading-tight" />
+                  <EditableText as="div" value={prof.handle} onChange={(handle) => { setProf((p) => ({ ...p, handle })); void saveProfile({ handle }); }} className="font-semibold text-[15px] leading-tight" />
                 ) : (
-                  <div className="font-semibold text-[15px] leading-tight truncate">{prof.name}</div>
+                  <div className="font-semibold text-[15px] leading-tight truncate">@{prof.handle}</div>
                 )}
                 {isAdmin ? (
-                  <EditableText as="div" value={prof.handle} onChange={(handle) => { setProf((p) => ({ ...p, handle })); void saveProfile({ handle }); }} className="text-xs text-muted-foreground" />
+                  <EditableText as="div" value={prof.name} onChange={(name) => { setProf((p) => ({ ...p, name })); void saveProfile({ name }); }} className="text-xs text-muted-foreground" />
                 ) : (
-                  <div className="text-xs text-muted-foreground truncate">@{prof.handle}</div>
+                  <div className="text-xs text-muted-foreground truncate">{prof.name}</div>
                 )}
               </div>
+
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
                   {isAdmin ? (
