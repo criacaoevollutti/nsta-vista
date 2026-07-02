@@ -47,18 +47,24 @@ function AdminPage() {
   const deleteFn = useServerFn(deleteClientCompany);
 
   const load = async () => {
-    const { data: profiles, error } = await supabase
-      .from("profiles")
-      .select("id,name,handle,access_pin,updated_at")
-      .order("updated_at", { ascending: false });
+    // Fetch profiles and post ownership in a single round-trip pair,
+    // then aggregate counts client-side (avoids N+1 count queries).
+    const [{ data: profiles, error }, { data: postRows }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id,name,handle,access_pin,updated_at")
+        .order("updated_at", { ascending: false }),
+      supabase.from("posts").select("user_id"),
+    ]);
     if (error) return toast.error("Erro ao carregar clientes");
-    const list = profiles ?? [];
-    const counts = await Promise.all(
-      list.map((p) =>
-        supabase.from("posts").select("id", { count: "exact", head: true }).eq("user_id", p.id).then(({ count }) => count ?? 0),
-      ),
+    const counts = new Map<string, number>();
+    for (const p of postRows ?? []) counts.set(p.user_id, (counts.get(p.user_id) ?? 0) + 1);
+    setRows(
+      (profiles ?? []).map((p) => ({
+        ...(p as Omit<Row, "post_count">),
+        post_count: counts.get(p.id) ?? 0,
+      })),
     );
-    setRows(list.map((p, i) => ({ ...(p as Omit<Row, "post_count">), post_count: counts[i] })));
   };
 
   useEffect(() => {
