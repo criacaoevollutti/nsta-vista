@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldAlert } from "lucide-react";
+import { useState } from "react";
+import { Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -42,16 +42,35 @@ type SharedProfile = {
   avatar: string;
 };
 
+type AdminProfile = {
+  id: string;
+  name: string;
+  handle: string;
+  avatar: string | null;
+  access_pin: string;
+  is_admin: boolean;
+};
+
 function AccessPage() {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{ profile: SharedProfile; posts: SharedPost[]; pin: string } | null>(null);
+  const [adminList, setAdminList] = useState<AdminProfile[] | null>(null);
 
   const submit = async (value: string) => {
     if (value.length !== 4) return;
     setLoading(true);
     setError(null);
+
+    const { data: adminRes } = await supabase.rpc("get_admin_data_by_pin", { _pin: value });
+    if (adminRes) {
+      setLoading(false);
+      const payload = adminRes as { profiles: AdminProfile[] };
+      setAdminList(payload.profiles ?? []);
+      return;
+    }
+
     const { data: res, error: err } = await supabase.rpc("get_profile_by_pin", { _pin: value });
     setLoading(false);
     if (err || !res) {
@@ -63,6 +82,18 @@ function AccessPage() {
     setData({ profile: payload.profile, posts: (payload.posts ?? []).slice(0, 12), pin: value });
   };
 
+  const openAsAdmin = async (targetPin: string) => {
+    setLoading(true);
+    const { data: res } = await supabase.rpc("get_profile_by_pin", { _pin: targetPin });
+    setLoading(false);
+    if (!res) {
+      toast.error("Não foi possível abrir essa conta");
+      return;
+    }
+    const payload = res as { profile: SharedProfile; posts: SharedPost[] };
+    setData({ profile: payload.profile, posts: (payload.posts ?? []).slice(0, 12), pin: targetPin });
+  };
+
   const push = (d: string) => {
     if (pin.length >= 4) return;
     const next = pin + d;
@@ -72,7 +103,53 @@ function AccessPage() {
   };
   const back = () => setPin((p) => p.slice(0, -1));
 
-  if (data) return <ClientFeed profile={data.profile} initialPosts={data.posts} pin={data.pin} onExit={() => setData(null)} />;
+  if (data) return <ClientFeed profile={data.profile} initialPosts={data.posts} pin={data.pin} onExit={() => { setData(null); if (!adminList) setPin(""); }} />;
+
+  if (adminList) {
+    return (
+      <AppFrame>
+        <TopBar
+          title="Painel admin"
+          subtitle={`${adminList.length} contas`}
+          right={
+            <button onClick={() => { setAdminList(null); setPin(""); }} className="text-xs text-muted-foreground px-3 h-8 rounded-full border border-hairline inline-flex items-center gap-1">
+              <ArrowLeft className="h-3 w-3" /> Sair
+            </button>
+          }
+        />
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-white">
+          {adminList.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => openAsAdmin(p.access_pin)}
+              disabled={loading}
+              className="w-full flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:border-purple-400 hover:bg-purple-50/40 transition text-left disabled:opacity-50"
+            >
+              {p.avatar ? (
+                <img src={p.avatar} alt={p.name} className="h-12 w-12 rounded-full object-cover" />
+              ) : (
+                <div className="h-12 w-12 rounded-full grid place-items-center text-white font-semibold" style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}>
+                  {p.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-slate-900 flex items-center gap-1.5 truncate">
+                  {p.name}
+                  {p.is_admin ? <ShieldCheck className="h-3.5 w-3.5 text-purple-600 shrink-0" /> : null}
+                </div>
+                <div className="text-xs text-slate-500 truncate">@{p.handle}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] uppercase tracking-wider text-slate-400">PIN</div>
+                <div className="text-sm font-mono font-bold text-orange-600">{p.access_pin}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </AppFrame>
+    );
+  }
+
 
   return (
     <AppFrame>
