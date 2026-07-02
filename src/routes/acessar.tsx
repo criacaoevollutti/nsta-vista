@@ -336,6 +336,12 @@ function ClientFeed({
           <div className="flex-1 min-w-0">
             <div className="font-semibold truncate">{prof.name}</div>
             <div className="text-xs text-muted-foreground">{prof.category}</div>
+            <div className="flex gap-4 mt-2 text-[13px]">
+              <div><span className="font-semibold tabular-nums">{posts.length}</span> <span className="text-muted-foreground">posts</span></div>
+              <div><span className="font-semibold tabular-nums">{prof.followers}</span> <span className="text-muted-foreground">seguidores</span></div>
+              <div><span className="font-semibold tabular-nums">{prof.following}</span> <span className="text-muted-foreground">seguindo</span></div>
+            </div>
+
             {isAdmin ? (
               <EditableText
                 as="p"
