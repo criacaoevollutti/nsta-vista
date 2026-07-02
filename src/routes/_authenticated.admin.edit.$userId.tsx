@@ -36,7 +36,7 @@ function AdminEditPage() {
       void useProfile.getState().hydrate(targetId);
       void usePosts.getState().hydrate(targetId);
     }
-    setReady(true);
+    
   }, [isAdmin, targetId]);
 
   if (loading) {
