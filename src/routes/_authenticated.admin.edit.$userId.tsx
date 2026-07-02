@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ArrowLeft, Grid3x3, Loader2, PlaySquare, ShieldAlert, UserSquare2 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -24,29 +24,22 @@ function AdminEditPage() {
   const navigate = useNavigate();
   const posts = usePosts((s) => s.posts);
   const handle = useProfile((s) => s.profile.handle);
-  const [ready, setReady] = useState(false);
+  
 
   useEffect(() => {
     if (!isAdmin) return;
     const profileState = useProfile.getState();
     const postsState = usePosts.getState();
-    // Only reset+rehydrate when switching to a different company.
     if (profileState.userId !== targetId || postsState.userId !== targetId) {
       profileState.reset();
       postsState.reset();
-      void Promise.all([
-        useProfile.getState().hydrate(targetId),
-        usePosts.getState().hydrate(targetId),
-      ]).then(() => setReady(true));
-    } else {
-      setReady(true);
+      void useProfile.getState().hydrate(targetId);
+      void usePosts.getState().hydrate(targetId);
     }
-    // Note: no cleanup — we intentionally keep the target loaded.
-    // Returning to /admin does not need admin's own profile data,
-    // and the index route will rehydrate itself if visited next.
+    
   }, [isAdmin, targetId]);
 
-  if (loading || (isAdmin && !ready)) {
+  if (loading) {
     return (
       <AppFrame>
         <div className="flex-1 grid place-items-center">

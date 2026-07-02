@@ -1,4 +1,4 @@
-import { MapPin, Link2, MessageCircle, Globe, CalendarClock, BadgeCheck } from "lucide-react";
+import { MapPin, Link2, BadgeCheck } from "lucide-react";
 import { useProfile } from "@/lib/profile-store";
 import { EditableText } from "./EditableText";
 
@@ -85,13 +85,7 @@ export function ProfileHeader({
       </div>
 
 
-      {/* CTA row */}
-      <div className="grid grid-cols-4 gap-2 mt-4">
-        <CTA icon={<MessageCircle className="h-4 w-4" />} label="WhatsApp" />
-        <CTA icon={<Globe className="h-4 w-4" />} label="Site" />
-        <CTA icon={<MapPin className="h-4 w-4" />} label="Local" />
-        <CTA icon={<CalendarClock className="h-4 w-4" />} label="Agendar" primary />
-      </div>
+
 
       {/* Approval progress — subtle premium touch */}
       <div className="mt-5 p-3 rounded-2xl bg-surface border border-hairline">
@@ -135,18 +129,4 @@ function Stat({
   );
 }
 
-function CTA({ icon, label, primary }: { icon: React.ReactNode; label: string; primary?: boolean }) {
-  return (
-    <button
-      className={`h-9 rounded-full text-[12.5px] font-medium flex items-center justify-center gap-1.5 border transition active:scale-[0.97] ${
-        primary
-          ? "text-white border-transparent shadow-[var(--shadow-glow-purple)]"
-          : "bg-surface hover:bg-surface-2 border-hairline text-foreground"
-      }`}
-      style={primary ? { background: "var(--gradient-brand)" } : undefined}
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
-}
+

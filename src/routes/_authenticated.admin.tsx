@@ -219,6 +219,7 @@ function AdminPage() {
                       <Link
                         to="/admin/edit/$userId"
                         params={{ userId: r.id }}
+                        preload="intent"
                         className="mt-3 w-full h-9 rounded-full text-xs font-medium inline-flex items-center justify-center gap-1.5 text-white"
                         style={{ background: `linear-gradient(135deg, ${PURPLE}, ${ORANGE})` }}
                       >
