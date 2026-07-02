@@ -21,7 +21,9 @@ interface PostsState {
   setStatus: (id: string, status: PostStatus) => void;
   duplicate: (id: string) => void;
   remove: (id: string) => void;
+  createAt: (position: number) => Promise<string | null>;
 }
+
 
 type PostRow = {
   id: string;
@@ -222,4 +224,41 @@ export const usePosts = create<PostsState>((set, get) => ({
         if (error) console.error("[posts.remove]", error);
       });
   },
+
+  createAt: async (position: number) => {
+    const state = get();
+    if (!state.userId) return null;
+    if (state.posts.length >= MAX_POSTS) {
+      toast.error(`Limite de ${MAX_POSTS} postagens por feed atingido`);
+      return null;
+    }
+    const placeholder = "https://images.unsplash.com/photo-1520975693416-35a9c1e37e15?w=800";
+    const { data, error } = await supabase
+      .from("posts")
+      .insert({
+        user_id: state.userId,
+        media: placeholder,
+        thumb: placeholder,
+        type: "image",
+        status: "draft",
+        title: "Nova postagem",
+        caption: "",
+        objective: "",
+        notes: "",
+        date: "",
+        time: "",
+        position,
+      })
+      .select()
+      .single();
+    if (error || !data) {
+      console.error("[posts.createAt]", error);
+      toast.error("Falha ao criar postagem");
+      return null;
+    }
+    const newPost = rowToPost(data as PostRow);
+    set((s) => ({ posts: [...s.posts, newPost] }));
+    return newPost.id;
+  },
 }));
+

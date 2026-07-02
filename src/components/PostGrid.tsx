@@ -14,12 +14,12 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Play } from "lucide-react";
+import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { usePosts } from "@/lib/store";
-import { MediaThumb } from "@/components/MediaThumb";
+import { usePosts, MAX_POSTS } from "@/lib/store";
 import type { Post, PostStatus } from "@/lib/types";
+
 
 const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
 
@@ -39,13 +39,14 @@ const STATUS_BADGE: Record<PostStatus, { icon: React.ReactNode; bg: string }> = 
 };
 
 export function PostGrid() {
-  // Zustand selectors must return a stable reference. Returning
-  // `s.posts.slice(...)` directly creates a new array on every render and can
-  // trigger React's "Maximum update depth exceeded" loop.
   const posts = usePosts((s) => s.posts);
-  const visiblePosts = useMemo(() => posts.slice(0, 12), [posts]);
+  const createAt = usePosts((s) => s.createAt);
+  const navigate = useNavigate();
+  const visiblePosts = useMemo(() => posts.slice(0, MAX_POSTS), [posts]);
+  const emptySlots = Math.max(0, MAX_POSTS - visiblePosts.length);
   const reorder = usePosts((s) => s.reorder);
   const [mounted, setMounted] = useState(false);
+  const [creating, setCreating] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const sensors = useSensors(
@@ -58,7 +59,27 @@ export function PostGrid() {
     reorder(String(e.active.id), String(e.over.id));
   };
 
-  // Render static grid on SSR to avoid dnd-kit's dynamic aria IDs mismatching.
+  const handleCreate = async () => {
+    if (creating) return;
+    setCreating(true);
+    const id = await createAt(visiblePosts.length);
+    setCreating(false);
+    if (id) navigate({ to: "/post/$id", params: { id } });
+  };
+
+  const EmptyCells = () =>
+    Array.from({ length: emptySlots }).map((_, i) => (
+      <button
+        key={`empty-${i}`}
+        type="button"
+        onClick={handleCreate}
+        className="relative aspect-[4/5] overflow-hidden bg-surface-2 border border-dashed border-border/60 grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-foreground transition-colors"
+        aria-label="Adicionar postagem"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+    ));
+
   if (!mounted) {
     return (
       <div className="grid grid-cols-3 gap-[2px] bg-background">
@@ -67,6 +88,7 @@ export function PostGrid() {
             <FeedCover post={p} />
           </div>
         ))}
+        <EmptyCells />
       </div>
     );
   }
@@ -78,11 +100,13 @@ export function PostGrid() {
           {visiblePosts.map((p, i) => (
             <GridCell key={p.id} post={p} index={i} />
           ))}
+          <EmptyCells />
         </div>
       </SortableContext>
     </DndContext>
   );
 }
+
 
 function GridCell({ post, index }: { post: Post; index: number }) {
   const navigate = useNavigate();
