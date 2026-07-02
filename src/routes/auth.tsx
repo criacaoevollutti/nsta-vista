@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, Mail, Lock, LogIn, UserPlus } from "lucide-react";
+import { KeyRound, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { AppFrame } from "@/components/AppFrame";
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Entrar — Aprovação de Conteúdo" },
-      { name: "description", content: "Acesse sua conta para gerenciar o feed de aprovação de conteúdo." },
+      { name: "description", content: "Acesse com o PIN enviado pela nossa equipe." },
     ],
   }),
   component: AuthPage,
@@ -19,41 +19,13 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // If already signed in, bounce home.
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/" });
     });
   }, [navigate]);
-
-  const handleEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast.success("Conta criada! Verifique seu e-mail se necessário.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
-      navigate({ to: "/" });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao autenticar");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGoogle = async () => {
     setLoading(true);
@@ -77,16 +49,28 @@ function AuthPage() {
             className="mx-auto h-14 w-14 rounded-2xl grid place-items-center text-white mb-4"
             style={{ background: "var(--gradient-brand)" }}
           >
-            <LogIn className="h-6 w-6" />
+            <KeyRound className="h-6 w-6" />
           </div>
           <h1 className="text-[22px] font-semibold tracking-tight">
-            {mode === "signin" ? "Bem-vindo de volta" : "Criar sua conta"}
+            Acesse com seu PIN
           </h1>
           <p className="text-[13.5px] text-muted-foreground mt-1">
-            {mode === "signin"
-              ? "Entre para gerenciar seu feed de aprovação."
-              : "Comece a organizar seu conteúdo agora."}
+            Digite o PIN de 4 dígitos enviado pela nossa equipe para visualizar seu feed.
           </p>
+        </div>
+
+        <Link
+          to="/acessar"
+          className="w-full h-12 rounded-2xl font-semibold text-[15px] text-white flex items-center justify-center gap-2 active:scale-[0.98] transition"
+          style={{ background: "var(--gradient-brand)" }}
+        >
+          <KeyRound className="h-4 w-4" /> Digitar PIN
+        </Link>
+
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-hairline" />
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">área da equipe</span>
+          <div className="flex-1 h-px bg-hairline" />
         </div>
 
         <button
@@ -96,82 +80,11 @@ function AuthPage() {
           className="h-11 rounded-2xl border border-hairline bg-surface hover:bg-surface-2 text-[14px] font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-60"
         >
           <GoogleIcon />
-          Continuar com Google
+          Entrar como administrador
         </button>
 
-        <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-hairline" />
-          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">ou</span>
-          <div className="flex-1 h-px bg-hairline" />
-        </div>
-
-        <form onSubmit={handleEmail} className="space-y-3">
-          <label className="block">
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium flex items-center gap-1.5">
-              <Mail className="h-3.5 w-3.5" /> E-mail
-            </span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full h-11 px-3.5 rounded-2xl bg-surface border border-hairline text-[14px] outline-none focus:border-brand-purple/50 transition"
-              placeholder="voce@exemplo.com"
-            />
-          </label>
-          <label className="block">
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium flex items-center gap-1.5">
-              <Lock className="h-3.5 w-3.5" /> Senha
-            </span>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full h-11 px-3.5 rounded-2xl bg-surface border border-hairline text-[14px] outline-none focus:border-brand-purple/50 transition"
-              placeholder="Mínimo 6 caracteres"
-            />
-          </label>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full h-12 rounded-2xl font-semibold text-[15px] text-white flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-60"
-            style={{ background: "var(--gradient-brand)" }}
-          >
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : mode === "signin" ? (
-              <>
-                <LogIn className="h-4 w-4" /> Entrar
-              </>
-            ) : (
-              <>
-                <UserPlus className="h-4 w-4" /> Criar conta
-              </>
-            )}
-          </button>
-        </form>
-
-        <button
-          type="button"
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="mt-5 text-center text-[13px] text-muted-foreground hover:text-foreground transition"
-        >
-          {mode === "signin" ? (
-            <>
-              Não tem conta? <span className="text-brand-purple font-medium">Criar agora</span>
-            </>
-          ) : (
-            <>
-              Já tem conta? <span className="text-brand-purple font-medium">Entrar</span>
-            </>
-          )}
-        </button>
-
-        <Link to="/" className="mt-8 text-center text-[12px] text-muted-foreground hover:text-foreground">
-          Voltar
+        <Link to="/" className="mt-8 text-center text-[12px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1">
+          <LogIn className="h-3 w-3 rotate-180" /> Voltar
         </Link>
       </div>
     </AppFrame>
