@@ -1,6 +1,18 @@
 import { Pencil, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { highlights } from "@/lib/mock-data";
+import { EditableText } from "@/components/EditableText";
+
+const NAMES_KEY = "highlight-names";
+
+function loadNames(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(NAMES_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
 
 const STORAGE_KEY = "highlight-covers";
 
