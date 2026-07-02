@@ -27,11 +27,23 @@ function loadOverrides(): Record<string, string> {
 
 export function Highlights() {
   const [covers, setCovers] = useState<Record<string, string>>({});
+  const [names, setNames] = useState<Record<string, string>>({});
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     setCovers(loadOverrides());
+    setNames(loadNames());
   }, []);
+
+  const renameHighlight = (id: string, next: string) => {
+    const updated = { ...names, [id]: next };
+    setNames(updated);
+    try {
+      window.localStorage.setItem(NAMES_KEY, JSON.stringify(updated));
+    } catch {
+      /* ignore quota */
+    }
+  };
 
   const pick = (id: string, file: File) => {
     const reader = new FileReader();
