@@ -85,13 +85,7 @@ export function ProfileHeader({
       </div>
 
 
-      {/* CTA row */}
-      <div className="grid grid-cols-4 gap-2 mt-4">
-        <CTA icon={<MessageCircle className="h-4 w-4" />} label="WhatsApp" />
-        <CTA icon={<Globe className="h-4 w-4" />} label="Site" />
-        <CTA icon={<MapPin className="h-4 w-4" />} label="Local" />
-        <CTA icon={<CalendarClock className="h-4 w-4" />} label="Agendar" primary />
-      </div>
+
 
       {/* Approval progress — subtle premium touch */}
       <div className="mt-5 p-3 rounded-2xl bg-surface border border-hairline">
