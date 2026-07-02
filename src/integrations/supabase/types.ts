@@ -120,6 +120,7 @@ export type Database = {
           following: number
           handle: string
           id: string
+          is_admin: boolean
           location: string
           name: string
           share_token: string
@@ -136,6 +137,7 @@ export type Database = {
           following?: number
           handle?: string
           id?: string
+          is_admin?: boolean
           location?: string
           name?: string
           share_token?: string
@@ -152,6 +154,7 @@ export type Database = {
           following?: number
           handle?: string
           id?: string
+          is_admin?: boolean
           location?: string
           name?: string
           share_token?: string
@@ -187,6 +190,7 @@ export type Database = {
     }
     Functions: {
       generate_unique_pin: { Args: never; Returns: string }
+      get_admin_data_by_pin: { Args: { _pin: string }; Returns: Json }
       get_profile_by_pin: { Args: { _pin: string }; Returns: Json }
       get_shared_profile: { Args: { _token: string }; Returns: Json }
       has_role: {
