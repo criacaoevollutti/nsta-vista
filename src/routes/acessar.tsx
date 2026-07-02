@@ -336,32 +336,47 @@ function ClientFeed({
                 </>
               ) : null}
             </div>
-            <div className="flex-1 grid grid-cols-3 gap-2 text-center">
-              <div>
+            <div className="flex-1 min-w-0">
+              <div className="mb-2">
                 {isAdmin ? (
-                  <EditableText value={String(prof.posts_count ?? Math.min(posts.length, 12))} onChange={(v) => { const n = Number(v.replace(/\D/g, "")) || 0; setProf((p) => ({ ...p, posts_count: n })); void saveProfile({ posts_count: n } as never); }} className="font-semibold tabular-nums text-[15px] block" />
+                  <EditableText as="div" value={prof.name} onChange={(name) => { setProf((p) => ({ ...p, name })); void saveProfile({ name }); }} className="font-semibold text-[15px] leading-tight" />
                 ) : (
-                  <div className="font-semibold tabular-nums text-[15px]">{prof.posts_count ?? Math.min(posts.length, 12)}</div>
+                  <div className="font-semibold text-[15px] leading-tight truncate">{prof.name}</div>
                 )}
-                <div className="text-[12px] text-muted-foreground">posts</div>
+                {isAdmin ? (
+                  <EditableText as="div" value={prof.handle} onChange={(handle) => { setProf((p) => ({ ...p, handle })); void saveProfile({ handle }); }} className="text-xs text-muted-foreground" />
+                ) : (
+                  <div className="text-xs text-muted-foreground truncate">@{prof.handle}</div>
+                )}
               </div>
-              <div>
-                {isAdmin ? (
-                  <EditableText value={prof.followers} onChange={(followers) => { setProf((p) => ({ ...p, followers })); void saveProfile({ followers }); }} className="font-semibold tabular-nums text-[15px] block" />
-                ) : (
-                  <div className="font-semibold tabular-nums text-[15px]">{prof.followers}</div>
-                )}
-                <div className="text-[12px] text-muted-foreground">seguidores</div>
-              </div>
-              <div>
-                {isAdmin ? (
-                  <EditableText value={String(prof.following)} onChange={(v) => { const n = Number(v.replace(/\D/g, "")) || 0; setProf((p) => ({ ...p, following: n })); void saveProfile({ following: n } as never); }} className="font-semibold tabular-nums text-[15px] block" />
-                ) : (
-                  <div className="font-semibold tabular-nums text-[15px]">{prof.following}</div>
-                )}
-                <div className="text-[12px] text-muted-foreground">seguindo</div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  {isAdmin ? (
+                    <EditableText value={String(prof.posts_count ?? Math.min(posts.length, 12))} onChange={(v) => { const n = Number(v.replace(/\D/g, "")) || 0; setProf((p) => ({ ...p, posts_count: n })); void saveProfile({ posts_count: n } as never); }} className="font-semibold tabular-nums text-[15px] block" />
+                  ) : (
+                    <div className="font-semibold tabular-nums text-[15px]">{prof.posts_count ?? Math.min(posts.length, 12)}</div>
+                  )}
+                  <div className="text-[12px] text-muted-foreground">posts</div>
+                </div>
+                <div>
+                  {isAdmin ? (
+                    <EditableText value={prof.followers} onChange={(followers) => { setProf((p) => ({ ...p, followers })); void saveProfile({ followers }); }} className="font-semibold tabular-nums text-[15px] block" />
+                  ) : (
+                    <div className="font-semibold tabular-nums text-[15px]">{prof.followers}</div>
+                  )}
+                  <div className="text-[12px] text-muted-foreground">seguidores</div>
+                </div>
+                <div>
+                  {isAdmin ? (
+                    <EditableText value={String(prof.following)} onChange={(v) => { const n = Number(v.replace(/\D/g, "")) || 0; setProf((p) => ({ ...p, following: n })); void saveProfile({ following: n } as never); }} className="font-semibold tabular-nums text-[15px] block" />
+                  ) : (
+                    <div className="font-semibold tabular-nums text-[15px]">{prof.following}</div>
+                  )}
+                  <div className="text-[12px] text-muted-foreground">seguindo</div>
+                </div>
               </div>
             </div>
+
           </div>
 
           <div className="mt-3 text-left">
