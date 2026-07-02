@@ -1,4 +1,4 @@
-import { MapPin, Link2, MessageCircle, Globe, CalendarClock, BadgeCheck } from "lucide-react";
+import { MapPin, Link2, BadgeCheck } from "lucide-react";
 import { useProfile } from "@/lib/profile-store";
 import { EditableText } from "./EditableText";
 
