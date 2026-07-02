@@ -224,41 +224,130 @@ function ClientFeed({
   profile,
   initialPosts,
   pin,
+  adminPin,
   onExit,
 }: {
   profile: SharedProfile;
   initialPosts: SharedPost[];
   pin: string;
+  adminPin: string | null;
   onExit: () => void;
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [active, setActive] = useState<SharedPost | null>(null);
+  const [prof, setProf] = useState(profile);
+  const [savingBio, setSavingBio] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const approvedCount = posts.filter((p) => p.approval_status === "approved").length;
+  const isAdmin = adminPin !== null;
+
+  const saveProfile = async (patch: Partial<SharedProfile>) => {
+    if (!isAdmin) return;
+    const { data, error } = await supabase.rpc("admin_update_profile", {
+      _admin_pin: adminPin!,
+      _target_id: prof.id,
+      _patch: patch as Record<string, unknown>,
+    });
+    if (error || !data) {
+      toast.error("Não foi possível salvar");
+      return false;
+    }
+    return true;
+  };
+
+  const onAvatarPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      toast.error("Imagem muito grande (máx 1MB)");
+      return;
+    }
+    setUploading(true);
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result));
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+    const ok = await saveProfile({ avatar: dataUrl });
+    setUploading(false);
+    if (ok) {
+      setProf((p) => ({ ...p, avatar: dataUrl }));
+      toast.success("Foto atualizada");
+    }
+  };
+
+  const onBioBlur = async (val: string) => {
+    if (val === prof.bio) return;
+    setSavingBio(true);
+    const ok = await saveProfile({ bio: val });
+    setSavingBio(false);
+    if (ok) {
+      setProf((p) => ({ ...p, bio: val }));
+      toast.success("Bio atualizada");
+    }
+  };
 
   return (
     <AppFrame>
       <TopBar
-        title={profile.handle}
-        subtitle="Aprovação do ciclo"
+        title={prof.handle}
+        subtitle={isAdmin ? "Modo admin — editando" : "Aprovação do ciclo"}
         right={
           <button onClick={onExit} className="text-xs text-muted-foreground px-3 h-8 rounded-full border border-hairline">
-            Sair
+            {isAdmin ? "Voltar" : "Sair"}
           </button>
         }
       />
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 flex items-center gap-4 border-b border-hairline">
-          {profile.avatar ? (
-            <img src={profile.avatar} alt={profile.name} className="h-16 w-16 rounded-full object-cover" />
-          ) : (
-            <div className="h-16 w-16 rounded-full bg-surface-2" />
-          )}
+        {isAdmin ? (
+          <div className="bg-primary/10 text-xs text-center py-1.5 border-b border-hairline">
+            Modo admin — editando @{prof.handle}
+          </div>
+        ) : null}
+        <div className="p-4 flex items-start gap-4 border-b border-hairline">
+          <div className="relative shrink-0">
+            {prof.avatar ? (
+              <img src={prof.avatar} alt={prof.name} className="h-20 w-20 rounded-full object-cover" />
+            ) : (
+              <div className="h-20 w-20 rounded-full bg-surface-2" />
+            )}
+            {isAdmin ? (
+              <>
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full grid place-items-center text-white shadow-md"
+                  style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}
+                  title="Trocar foto"
+                >
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                </button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onAvatarPick} />
+              </>
+            ) : null}
+          </div>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold truncate">{profile.name}</div>
-            <div className="text-xs text-muted-foreground">{profile.category}</div>
-            {profile.bio ? <p className="text-sm mt-1 line-clamp-2">{profile.bio}</p> : null}
+            <div className="font-semibold truncate">{prof.name}</div>
+            <div className="text-xs text-muted-foreground">{prof.category}</div>
+            {isAdmin ? (
+              <textarea
+                defaultValue={prof.bio}
+                onBlur={(e) => void onBioBlur(e.target.value)}
+                rows={3}
+                placeholder="Bio da empresa…"
+                className="mt-2 w-full rounded-lg border border-hairline bg-background p-2 text-sm resize-none focus:outline-none focus:border-purple-400"
+              />
+            ) : prof.bio ? (
+              <p className="text-sm mt-1 line-clamp-3 whitespace-pre-wrap">{prof.bio}</p>
+            ) : null}
+            {savingBio ? <div className="text-[11px] text-muted-foreground mt-1">Salvando…</div> : null}
           </div>
         </div>
+
+        <Highlights />
 
         <div className="px-4 py-3 text-xs text-muted-foreground border-b border-hairline">
           {approvedCount} de {posts.length} aprovados
