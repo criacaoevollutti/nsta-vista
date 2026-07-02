@@ -24,7 +24,7 @@ function AdminEditPage() {
   const navigate = useNavigate();
   const posts = usePosts((s) => s.posts);
   const handle = useProfile((s) => s.profile.handle);
-  const [ready, setReady] = useState(false);
+  
 
   useEffect(() => {
     if (!isAdmin) return;
