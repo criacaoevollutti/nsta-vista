@@ -299,28 +299,17 @@ function DetailCard({
         <div className="mt-1 font-mono text-4xl font-bold tracking-[0.4em]" style={{ color: PURPLE }}>
           {row.access_pin}
         </div>
-        <div className="mt-3 flex gap-2 justify-center flex-wrap">
+        <div className="mt-3 flex justify-center">
           <button
             onClick={() => onCopy(row.access_pin, "PIN copiado")}
-            className="h-9 px-4 rounded-full text-xs font-medium inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:border-violet-300"
-          >
-            <Copy className="h-3.5 w-3.5" /> Copiar PIN
-          </button>
-          <button
-            onClick={() => onCopy(accessUrl, "Link copiado")}
-            className="h-9 px-4 rounded-full text-xs font-medium inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:border-violet-300"
-          >
-            <Copy className="h-3.5 w-3.5" /> Copiar link
-          </button>
-          <button
-            onClick={() => onCopy(message, "Mensagem copiada")}
             className="h-9 px-4 rounded-full text-xs font-medium text-white inline-flex items-center gap-1.5"
             style={{ background: ORANGE }}
           >
-            <Copy className="h-3.5 w-3.5" /> Link + PIN
+            <Copy className="h-3.5 w-3.5" /> Copiar PIN
           </button>
         </div>
       </div>
+
 
       <div className="grid grid-cols-2 gap-2">
         <Link
