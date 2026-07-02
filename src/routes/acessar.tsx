@@ -313,40 +313,30 @@ function ClientFeed({
             Modo admin — editando @{prof.handle}
           </div>
         ) : null}
-        <div className="p-4 flex items-start gap-4 border-b border-hairline">
-          <div className="relative shrink-0">
-            {prof.avatar ? (
-              <img src={prof.avatar} alt={prof.name} className="h-20 w-20 rounded-full object-cover" />
-            ) : (
-              <div className="h-20 w-20 rounded-full bg-surface-2" />
-            )}
-            {isAdmin ? (
-              <>
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploading}
-                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full grid place-items-center text-white shadow-md"
-                  style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}
-                  title="Trocar foto"
-                >
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-                </button>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onAvatarPick} />
-              </>
-            ) : null}
-          </div>
-          <div className="flex-1 min-w-0">
-            {isAdmin ? (
-              <EditableText as="div" value={prof.name} onChange={(name) => { setProf((p) => ({ ...p, name })); void saveProfile({ name }); }} className="font-semibold" />
-            ) : (
-              <div className="font-semibold truncate">{prof.name}</div>
-            )}
-            {isAdmin ? (
-              <EditableText as="div" value={prof.category} onChange={(category) => { setProf((p) => ({ ...p, category })); void saveProfile({ category }); }} className="text-xs text-muted-foreground" />
-            ) : (
-              <div className="text-xs text-muted-foreground">{prof.category}</div>
-            )}
-            <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+        <div className="p-4 border-b border-hairline">
+          <div className="flex items-center gap-6">
+            <div className="relative shrink-0">
+              {prof.avatar ? (
+                <img src={prof.avatar} alt={prof.name} className="h-20 w-20 rounded-full object-cover" />
+              ) : (
+                <div className="h-20 w-20 rounded-full bg-surface-2" />
+              )}
+              {isAdmin ? (
+                <>
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full grid place-items-center text-white shadow-md"
+                    style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}
+                    title="Trocar foto"
+                  >
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                  </button>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onAvatarPick} />
+                </>
+              ) : null}
+            </div>
+            <div className="flex-1 grid grid-cols-3 gap-2 text-center">
               <div>
                 {isAdmin ? (
                   <EditableText value={String(prof.posts_count ?? Math.min(posts.length, 12))} onChange={(v) => { const n = Number(v.replace(/\D/g, "")) || 0; setProf((p) => ({ ...p, posts_count: n })); void saveProfile({ posts_count: n } as never); }} className="font-semibold tabular-nums text-[15px] block" />
@@ -355,7 +345,6 @@ function ClientFeed({
                 )}
                 <div className="text-[12px] text-muted-foreground">posts</div>
               </div>
-
               <div>
                 {isAdmin ? (
                   <EditableText value={prof.followers} onChange={(followers) => { setProf((p) => ({ ...p, followers })); void saveProfile({ followers }); }} className="font-semibold tabular-nums text-[15px] block" />
@@ -373,8 +362,19 @@ function ClientFeed({
                 <div className="text-[12px] text-muted-foreground">seguindo</div>
               </div>
             </div>
+          </div>
 
-
+          <div className="mt-3 text-left">
+            {isAdmin ? (
+              <EditableText as="div" value={prof.name} onChange={(name) => { setProf((p) => ({ ...p, name })); void saveProfile({ name }); }} className="font-semibold text-sm" />
+            ) : (
+              <div className="font-semibold text-sm">{prof.name}</div>
+            )}
+            {isAdmin ? (
+              <EditableText as="div" value={prof.category} onChange={(category) => { setProf((p) => ({ ...p, category })); void saveProfile({ category }); }} className="text-xs text-muted-foreground" />
+            ) : (
+              <div className="text-xs text-muted-foreground">{prof.category}</div>
+            )}
             {isAdmin ? (
               <EditableText
                 as="p"
@@ -382,15 +382,15 @@ function ClientFeed({
                 value={prof.bio}
                 onChange={(bio) => void onBioBlur(bio)}
                 placeholder="Clique para adicionar a bio…"
-                className="text-sm mt-2 leading-snug whitespace-pre-line block"
+                className="text-sm mt-1 leading-snug whitespace-pre-line block"
               />
             ) : prof.bio ? (
-              <p className="text-sm mt-2 leading-snug whitespace-pre-line">{prof.bio}</p>
+              <p className="text-sm mt-1 leading-snug whitespace-pre-line">{prof.bio}</p>
             ) : null}
             {savingBio ? <div className="text-[11px] text-muted-foreground mt-1">Salvando…</div> : null}
           </div>
-
         </div>
+
 
         <Highlights />
 
