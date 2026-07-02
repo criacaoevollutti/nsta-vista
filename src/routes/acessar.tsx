@@ -44,7 +44,9 @@ type SharedProfile = {
   avatar: string;
   followers: string;
   following: number;
+  posts_count: number | null;
 };
+
 
 
 type AdminProfile = {
