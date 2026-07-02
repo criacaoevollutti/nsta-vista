@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ArrowLeft, Grid3x3, Loader2, PlaySquare, ShieldAlert, UserSquare2 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
