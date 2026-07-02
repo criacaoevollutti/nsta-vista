@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -127,6 +127,23 @@ function AccessPage() {
           }
         />
         <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-white">
+          <button
+            onClick={async () => {
+              const name = window.prompt("Nome da nova empresa:");
+              if (!name || !name.trim()) return;
+              const handle = window.prompt("@ da empresa (opcional):", name.trim().toLowerCase().replace(/[^a-z0-9_]+/g, "")) || "";
+              const { data: created, error } = await supabase.rpc("admin_create_profile", { _admin_pin: adminPin!, _name: name.trim(), _handle: handle.trim() });
+              if (error || !created) { toast.error("Não foi possível criar a empresa"); return; }
+              const np = created as unknown as AdminProfile;
+              setAdminList((prev) => [...(prev ?? []), np]);
+              toast.success(`Empresa criada — PIN ${np.access_pin}`);
+            }}
+            className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl text-white font-semibold shadow-sm hover:opacity-95 transition"
+            style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}
+          >
+            <Plus className="h-4 w-4" /> Criar nova empresa
+          </button>
+
           {adminList.map((p) => (
             <button
               key={p.id}

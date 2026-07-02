@@ -192,6 +192,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_profile: {
+        Args: { _admin_pin: string; _handle: string; _name: string }
+        Returns: Json
+      }
       admin_update_profile: {
         Args: { _admin_pin: string; _patch: Json; _target_id: string }
         Returns: boolean
