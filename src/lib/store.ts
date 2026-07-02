@@ -239,7 +239,7 @@ export const usePosts = create<PostsState>((set, get) => ({
         user_id: state.userId,
         media: placeholder,
         thumb: placeholder,
-        type: "single",
+        type: "image",
         status: "draft",
         title: "Nova postagem",
         caption: "",
