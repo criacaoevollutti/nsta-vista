@@ -58,6 +58,7 @@ function AccessPage() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{ profile: SharedProfile; posts: SharedPost[]; pin: string } | null>(null);
   const [adminList, setAdminList] = useState<AdminProfile[] | null>(null);
+  const [adminPin, setAdminPin] = useState<string | null>(null);
 
   const submit = async (value: string) => {
     if (value.length !== 4) return;
@@ -69,6 +70,7 @@ function AccessPage() {
       setLoading(false);
       const payload = adminRes as { profiles: AdminProfile[] };
       setAdminList(payload.profiles ?? []);
+      setAdminPin(value);
       return;
     }
 
@@ -104,7 +106,7 @@ function AccessPage() {
   };
   const back = () => setPin((p) => p.slice(0, -1));
 
-  if (data) return <ClientFeed profile={data.profile} initialPosts={data.posts} pin={data.pin} onExit={() => { setData(null); if (!adminList) setPin(""); }} />;
+  if (data) return <ClientFeed profile={data.profile} initialPosts={data.posts} pin={data.pin} adminPin={adminPin} onExit={() => { setData(null); if (!adminList) { setPin(""); setAdminPin(null); } }} />;
 
   if (adminList) {
     return (
