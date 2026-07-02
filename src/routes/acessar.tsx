@@ -42,7 +42,10 @@ type SharedProfile = {
   category: string;
   bio: string;
   avatar: string;
+  followers: string;
+  following: number;
 };
+
 
 type AdminProfile = {
   id: string;
