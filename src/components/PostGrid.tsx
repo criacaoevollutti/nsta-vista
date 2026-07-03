@@ -14,7 +14,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Plus } from "lucide-react";
+import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Plus, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { usePosts, MAX_POSTS } from "@/lib/store";
@@ -146,6 +146,15 @@ function GridCell({ post, index }: { post: Post; index: number }) {
       }}
     >
       <FeedCover post={post} />
+
+      {/* Play overlay for video/reel */}
+      {post.type === "reel" || post.type === "video" ? (
+        <div className="absolute inset-0 grid place-items-center pointer-events-none">
+          <div className="h-9 w-9 rounded-full bg-white/25 backdrop-blur-sm grid place-items-center">
+            <Play className="h-4 w-4 text-white" fill="white" />
+          </div>
+        </div>
+      ) : null}
 
       {/* Type icon top-right */}
       {TYPE_ICON[post.type] ? (

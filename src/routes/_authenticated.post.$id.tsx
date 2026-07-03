@@ -358,7 +358,7 @@ function PostPage() {
                   </>
                 )}
               </button>
-              {isVideoUrl(post.media) ? (
+              {isVideoUrl(post.media) || post.type === "reel" || post.type === "video" || post.type === "story" ? (
                 <>
                   <input
                     ref={coverInputRef}
