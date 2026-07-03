@@ -709,6 +709,9 @@ function AdminPostEditor({
                 if (error) { toast.error("Falha ao aprovar"); return; }
                 toast.success("Aprovado");
                 onUpdated({ ...post, ...form, approval_status: "approved" });
+                setJustApproved(true);
+                setTimeout(() => setJustApproved(false), 1500);
+
               }}
               disabled={saving}
               className="h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-status-approved"
