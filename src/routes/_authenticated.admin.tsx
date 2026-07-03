@@ -119,9 +119,15 @@ function AdminPage() {
   };
 
   const removeCompany = async (row: Row) => {
+    if (!adminPin) return toast.error("PIN de admin indisponível");
     if (!window.confirm(`Excluir "${row.name}" e todos os posts? Ação irreversível.`)) return;
     try {
-      await deleteFn({ data: { userId: row.id } });
+      const { data, error } = await supabase.rpc("admin_delete_profile", {
+        _admin_pin: adminPin,
+        _target_id: row.id,
+      });
+      if (error) throw error;
+      if (!data) throw new Error("Falha ao excluir");
       toast.success("Empresa excluída");
       setSelectedId(null);
       void load();
@@ -129,6 +135,7 @@ function AdminPage() {
       toast.error(e instanceof Error ? e.message : "Falha ao excluir");
     }
   };
+
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
