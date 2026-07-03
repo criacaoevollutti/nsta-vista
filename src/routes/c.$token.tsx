@@ -291,14 +291,18 @@ function PostReviewSheet({
             <button
               onClick={() => submit("approved")}
               disabled={saving !== null}
-              className="flex-1 h-11 rounded-full bg-status-approved text-white text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              className={`flex-1 h-11 rounded-full text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50 ${
+                isApproved
+                  ? "border border-status-approved text-status-approved bg-status-approved/10"
+                  : "bg-status-approved text-white"
+              }`}
             >
               {saving === "approved" ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Check className="h-4 w-4" strokeWidth={3} />
               )}
-              Aprovar
+              {isApproved ? "Aprovado" : "Aprovar"}
             </button>
           </div>
 
