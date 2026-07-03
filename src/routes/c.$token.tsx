@@ -53,7 +53,7 @@ function SharedView() {
   const [notFound, setNotFound] = useState(false);
   const [active, setActive] = useState<SharedPost | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const { data, error } = await supabase.rpc("get_shared_profile", { _token: token });
     if (error || !data) {
       setNotFound(true);
@@ -64,12 +64,14 @@ function SharedView() {
     setProfile(payload.profile);
     setPosts((payload.posts ?? []).slice(0, 12));
     setLoading(false);
-  };
+  }, [token]);
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [load]);
+
+  useLiveProfile(profile?.id ?? null, load);
+
 
   if (loading) {
     return (
