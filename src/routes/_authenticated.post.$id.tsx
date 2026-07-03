@@ -29,6 +29,7 @@ import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 
 const MAX_MB = 500;
 import { isVideoUrl } from "@/lib/utils";
+import { CarouselMedia } from "@/components/CarouselMedia";
 
 async function captureVideoThumbnail(file: File): Promise<Blob | null> {
   return new Promise((resolve) => {
