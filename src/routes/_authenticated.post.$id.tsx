@@ -96,6 +96,7 @@ function PostPage() {
   const post = usePosts((s) => s.posts.find((p) => p.id === id));
   const update = usePosts((s) => s.update);
   const setStatus = usePosts((s) => s.setStatus);
+  const setApproval = usePosts((s) => s.setApproval);
   const duplicate = usePosts((s) => s.duplicate);
   const remove = usePosts((s) => s.remove);
   const [uid, setUid] = useState<string | undefined>(undefined);
