@@ -738,6 +738,26 @@ function AdminPostEditor({
             </button>
           </div>
 
+          {post.approval_status !== "pending" ? (
+            <button
+              onClick={async () => {
+                const { error } = await supabase.rpc("admin_update_post", {
+                  _admin_pin: adminPin,
+                  _post_id: post.id,
+                  _patch: { approval_status: "pending", client_comment: "" } as unknown as never,
+                });
+                if (error) { toast.error("Falha ao desfazer"); return; }
+                toast.success("Marcação removida");
+                onUpdated({ ...post, ...form, approval_status: "pending", client_comment: "" });
+                setSupportOpen(false);
+                setSupportText("");
+              }}
+              className="w-full h-10 rounded-full border border-hairline text-sm text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1.5"
+            >
+              Desfazer marcação {post.approval_status === "approved" ? "de aprovação" : "de suporte"}
+            </button>
+          ) : null}
+
           {supportOpen ? (
             <div className="rounded-2xl border border-hairline bg-surface-2/40 p-3 space-y-2">
               <label className="text-xs font-medium text-muted-foreground">
