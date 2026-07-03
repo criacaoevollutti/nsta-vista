@@ -38,8 +38,15 @@ function AdminEditPage() {
       void useProfile.getState().hydrate(targetId);
       void usePosts.getState().hydrate(targetId);
     }
-    
   }, [isAdmin, targetId]);
+
+  const refetchTarget = useCallback(() => {
+    if (!isAdmin) return;
+    void useProfile.getState().hydrate(targetId);
+    void usePosts.getState().hydrate(targetId);
+  }, [isAdmin, targetId]);
+  useLiveProfile(isAdmin ? targetId : null, refetchTarget);
+
 
   if (loading) {
     return (
