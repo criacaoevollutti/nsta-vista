@@ -963,7 +963,7 @@ function AdminPostEditor({
             <div className={`w-full ${ratio} grid place-items-center text-white/60 text-sm`}>Sem mídia</div>
           )}
           <div className="absolute bottom-3 right-3 flex gap-2">
-            {isVideo && (
+            {(isVideo || form.type === "reel") && (
               <button
                 onClick={() => coverRef.current?.click()}
                 disabled={uploadingCover}
@@ -1002,11 +1002,9 @@ function AdminPostEditor({
           <label className="text-xs block">
             <span className="text-muted-foreground">Tipo</span>
             <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm">
-              <option value="image">Imagem</option>
+              <option value="image">Foto</option>
               <option value="carousel">Carrossel</option>
-              <option value="video">Vídeo</option>
               <option value="reel">Reels</option>
-              <option value="story">Stories</option>
             </select>
           </label>
 
