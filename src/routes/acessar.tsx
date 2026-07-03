@@ -616,7 +616,11 @@ function AdminPostEditor({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportText, setSupportText] = useState(post.client_comment ?? "");
+  const [sendingSupport, setSendingSupport] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
 
   const isVideo = isVideoUrl(form.media || "");
   const ratio = isVideo || form.type === "reel" || form.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]";
