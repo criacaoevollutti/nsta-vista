@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
-import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus } from "lucide-react";
+import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus, X, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -750,6 +750,39 @@ function AdminPostEditor({
     } finally {
       setUploading(false);
     }
+  };
+
+  const uploadExtra = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (!files.length) return;
+    const remaining = 10 - form.carousel_images.length;
+    if (remaining <= 0) { toast.error("Limite de 10 imagens atingido"); return; }
+    const toUpload = files.slice(0, remaining);
+    setUploadingExtra(true);
+    try {
+      const urls: string[] = [];
+      for (const file of toUpload) {
+        if (file.size > 50 * 1024 * 1024) { toast.error(`"${file.name}" maior que 50MB`); continue; }
+        if (!file.type.startsWith("image/")) { toast.error(`"${file.name}" não é imagem`); continue; }
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `pin/${post.id}-extra-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("media").upload(path, file, { contentType: file.type, upsert: true });
+        if (upErr) { toast.error("Falha no envio"); continue; }
+        const { data: signed } = await supabase.storage.from("media").createSignedUrl(path, 60 * 60 * 24 * 365);
+        if (signed?.signedUrl) urls.push(signed.signedUrl);
+      }
+      if (urls.length) {
+        setForm((f) => ({ ...f, carousel_images: [...f.carousel_images, ...urls].slice(0, 10) }));
+        toast.success(`${urls.length} imagem(ns) adicionada(s)`);
+      }
+    } finally {
+      setUploadingExtra(false);
+    }
+  };
+
+  const removeExtra = (idx: number) => {
+    setForm((f) => ({ ...f, carousel_images: f.carousel_images.filter((_, i) => i !== idx) }));
   };
 
   const save = async () => {
