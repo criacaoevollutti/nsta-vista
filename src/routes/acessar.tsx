@@ -10,6 +10,9 @@ import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
 import { EditableText } from "@/components/EditableText";
 import { useLiveProfile } from "@/hooks/use-live-profile";
+import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 
 export const Route = createFileRoute("/acessar")({
