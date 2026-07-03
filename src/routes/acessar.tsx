@@ -963,7 +963,7 @@ function AdminPostEditor({
             <div className={`w-full ${ratio} grid place-items-center text-white/60 text-sm`}>Sem mídia</div>
           )}
           <div className="absolute bottom-3 right-3 flex gap-2">
-            {isVideo && (
+            {(isVideo || form.type === "reel") && (
               <button
                 onClick={() => coverRef.current?.click()}
                 disabled={uploadingCover}
