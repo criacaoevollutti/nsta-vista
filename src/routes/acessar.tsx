@@ -317,8 +317,8 @@ function ClientFeed({
   return (
     <AppFrame>
       <TopBar
-        title={prof.handle}
-        subtitle={isAdmin ? "Modo admin — editando" : "Aprovação do ciclo"}
+        title="App Evollutti"
+        subtitle="Publievo"
         right={
           <button onClick={onExit} className="text-xs text-muted-foreground px-3 h-8 rounded-full border border-hairline">
             {isAdmin ? "Voltar" : "Sair"}
@@ -326,11 +326,6 @@ function ClientFeed({
         }
       />
       <div className="flex-1 overflow-y-auto">
-        {isAdmin ? (
-          <div className="bg-primary/10 text-xs text-center py-1.5 border-b border-hairline">
-            Modo admin — editando @{prof.handle}
-          </div>
-        ) : null}
         <div className="p-4 border-b border-hairline">
           <div className="flex items-center gap-6">
             <div className="relative shrink-0">
