@@ -254,9 +254,9 @@ function PostPage() {
     setTimeout(() => {
       setSupportOpen(false);
       setSupportSent(false);
-      setSupportText("");
     }, 1200);
   };
+
 
   return (
     <AppFrame>
