@@ -14,7 +14,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Plus } from "lucide-react";
+import { Check, Clock, Film, Images, MessageSquareWarning, Rss, Plus, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { usePosts, MAX_POSTS } from "@/lib/store";
