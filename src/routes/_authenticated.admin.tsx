@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -15,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/use-is-admin";
-import { createClientCompany, deleteClientCompany } from "@/lib/admin.functions";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
