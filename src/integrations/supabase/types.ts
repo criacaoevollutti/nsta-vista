@@ -53,6 +53,7 @@ export type Database = {
         Row: {
           approval_status: string
           caption: string
+          carousel_images: Json
           client_comment: string
           created_at: string
           date: string
@@ -72,6 +73,7 @@ export type Database = {
         Insert: {
           approval_status?: string
           caption?: string
+          carousel_images?: Json
           client_comment?: string
           created_at?: string
           date?: string
@@ -91,6 +93,7 @@ export type Database = {
         Update: {
           approval_status?: string
           caption?: string
+          carousel_images?: Json
           client_comment?: string
           created_at?: string
           date?: string
