@@ -42,9 +42,12 @@ function AdminEditPage() {
 
   const refetchTarget = useCallback(() => {
     if (!isAdmin) return;
+    useProfile.getState().reset();
+    usePosts.getState().reset();
     void useProfile.getState().hydrate(targetId);
     void usePosts.getState().hydrate(targetId);
   }, [isAdmin, targetId]);
+
   useLiveProfile(isAdmin ? targetId : null, refetchTarget);
 
 
