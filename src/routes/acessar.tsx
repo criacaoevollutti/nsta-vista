@@ -317,7 +317,7 @@ function ClientFeed({
   return (
     <AppFrame>
       <TopBar
-        title="App Evollutti"
+        title="Grupo Evollutti"
         subtitle="Publievo"
         right={
           <button onClick={onExit} className="text-xs text-muted-foreground px-3 h-8 rounded-full border border-hairline">
