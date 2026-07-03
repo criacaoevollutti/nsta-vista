@@ -856,6 +856,46 @@ function AdminPostEditor({
             </select>
           </label>
 
+          {form.type === "carousel" ? (
+            <div className="text-xs block">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Imagens do carrossel <span className="text-muted-foreground/70">(além da capa · {form.carousel_images.length}/10)</span></span>
+                <button
+                  type="button"
+                  onClick={() => extraRef.current?.click()}
+                  disabled={uploadingExtra || form.carousel_images.length >= 10}
+                  className="h-8 px-2.5 rounded-full border border-hairline text-xs inline-flex items-center gap-1 disabled:opacity-50"
+                >
+                  {uploadingExtra ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
+                  Adicionar
+                </button>
+              </div>
+              <input ref={extraRef} type="file" accept="image/*" multiple className="hidden" onChange={uploadExtra} />
+              {form.carousel_images.length ? (
+                <div className="mt-2 grid grid-cols-4 gap-2">
+                  {form.carousel_images.map((url, i) => (
+                    <div key={`${url}-${i}`} className="relative aspect-square rounded-md overflow-hidden border border-hairline bg-black">
+                      <img src={url} alt={`Imagem ${i + 2}`} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeExtra(i)}
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/70 text-white grid place-items-center hover:bg-black"
+                        aria-label="Remover"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="absolute bottom-1 left-1 h-5 min-w-5 px-1 rounded-full bg-black/70 text-white text-[10px] grid place-items-center">{i + 2}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 text-muted-foreground/80 text-xs">Nenhuma imagem adicional. A capa acima é a primeira do carrossel.</div>
+              )}
+            </div>
+          ) : null}
+
+
+
 
           <label className="text-xs block">
             <span className="text-muted-foreground">Legenda</span>
