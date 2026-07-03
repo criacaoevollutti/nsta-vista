@@ -1002,11 +1002,9 @@ function AdminPostEditor({
           <label className="text-xs block">
             <span className="text-muted-foreground">Tipo</span>
             <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm">
-              <option value="image">Imagem</option>
+              <option value="image">Foto</option>
               <option value="carousel">Carrossel</option>
-              <option value="video">Vídeo</option>
               <option value="reel">Reels</option>
-              <option value="story">Stories</option>
             </select>
           </label>
 
