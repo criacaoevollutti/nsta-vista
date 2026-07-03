@@ -724,11 +724,13 @@ function AdminPostEditor({
   });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingExtra, setUploadingExtra] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
 
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const extraRef = useRef<HTMLInputElement>(null);
 
 
@@ -757,6 +759,30 @@ function AdminPostEditor({
       toast.error("Falha no envio");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const uploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem"); return; }
+    if (file.size > 50 * 1024 * 1024) { toast.error("Imagem maior que 50MB"); return; }
+    setUploadingCover(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `pin/${post.id}-cover-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("media").upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage.from("media").createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (sErr || !signed) throw sErr ?? new Error("sign fail");
+      setForm((f) => ({ ...f, thumb: signed.signedUrl }));
+      toast.success("Capa atualizada");
+    } catch (err) {
+      console.error(err);
+      toast.error("Falha no envio da capa");
+    } finally {
+      setUploadingCover(false);
     }
   };
 
@@ -823,22 +849,35 @@ function AdminPostEditor({
       <div className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[calc(100dvh-68px)] sm:max-h-[calc(100dvh-100px)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="relative bg-black">
           {form.media && isVideo ? (
-            <video src={form.media} controls playsInline preload="metadata" className={`w-full object-contain ${ratio}`} />
+            <video src={form.media} poster={form.thumb && form.thumb !== form.media ? form.thumb : undefined} controls playsInline preload="metadata" className={`w-full object-contain ${ratio}`} />
           ) : form.media ? (
             <img src={form.media} alt={form.title} className={`w-full object-cover ${ratio}`} />
           ) : (
             <div className={`w-full ${ratio} grid place-items-center text-white/60 text-sm`}>Sem mídia</div>
           )}
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="absolute bottom-3 right-3 h-10 px-3 rounded-full text-white text-xs font-semibold shadow-md inline-flex items-center gap-1.5 disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}
-          >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-            Trocar mídia
-          </button>
+          <div className="absolute bottom-3 right-3 flex gap-2">
+            {isVideo && (
+              <button
+                onClick={() => coverRef.current?.click()}
+                disabled={uploadingCover}
+                className="h-10 px-3 rounded-full bg-white/90 text-black text-xs font-semibold shadow-md inline-flex items-center gap-1.5 disabled:opacity-60"
+              >
+                {uploadingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                Capa
+              </button>
+            )}
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="h-10 px-3 rounded-full text-white text-xs font-semibold shadow-md inline-flex items-center gap-1.5 disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              Trocar mídia
+            </button>
+          </div>
           <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={upload} />
+          <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={uploadCover} />
         </div>
 
         <div className="p-4 space-y-3">
