@@ -210,22 +210,32 @@ function PostReviewSheet({
 }) {
   const [comment, setComment] = useState(post.client_comment ?? "");
   const [saving, setSaving] = useState<"approved" | "changes_requested" | null>(null);
+  const isApproved = post.approval_status === "approved";
 
-  const submit = async (status: "approved" | "changes_requested") => {
-    setSaving(status);
+  const submit = async (action: "approved" | "changes_requested") => {
+    const targetStatus: "approved" | "changes_requested" | "pending" =
+      action === "approved" && isApproved ? "pending" : action;
+    const targetComment = targetStatus === "pending" ? "" : comment;
+    setSaving(action);
     const { data, error } = await supabase.rpc("set_post_approval", {
       _token: token,
       _post_id: post.id,
-      _status: status,
-      _comment: comment,
+      _status: targetStatus,
+      _comment: targetComment,
     });
     setSaving(null);
     if (error || !data) {
       toast.error("Não foi possível salvar");
       return;
     }
-    toast.success(status === "approved" ? "Post aprovado" : "Alteração solicitada");
-    onUpdated({ ...post, approval_status: status, client_comment: comment });
+    toast.success(
+      targetStatus === "approved"
+        ? "Post aprovado"
+        : targetStatus === "pending"
+        ? "Aprovação desfeita"
+        : "Alteração solicitada"
+    );
+    onUpdated({ ...post, approval_status: targetStatus, client_comment: targetComment });
   };
 
   return (
@@ -281,14 +291,18 @@ function PostReviewSheet({
             <button
               onClick={() => submit("approved")}
               disabled={saving !== null}
-              className="flex-1 h-11 rounded-full bg-status-approved text-white text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              className={`flex-1 h-11 rounded-full text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50 ${
+                isApproved
+                  ? "border border-status-approved text-status-approved bg-status-approved/10"
+                  : "bg-status-approved text-white"
+              }`}
             >
               {saving === "approved" ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Check className="h-4 w-4" strokeWidth={3} />
               )}
-              Aprovar
+              {isApproved ? "Aprovado" : "Aprovar"}
             </button>
           </div>
 
