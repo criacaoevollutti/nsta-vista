@@ -258,7 +258,7 @@ function PostReviewSheet({
             <div className="text-xs text-muted-foreground">
               {post.date} • {post.time}
             </div>
-            <h2 className="font-semibold mt-1">{post.title}</h2>
+            
             <p className="text-sm whitespace-pre-wrap text-muted-foreground mt-2">{post.caption}</p>
           </div>
 

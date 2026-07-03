@@ -677,10 +677,6 @@ function PostReviewSheet({
             <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center capitalize">{post.type}</div>
           </div>
 
-          <div className="text-xs block">
-            <span className="text-muted-foreground">Título</span>
-            <div className="mt-1 w-full min-h-9 rounded-md border border-hairline bg-background px-2 py-2 text-sm">{post.title || <span className="text-muted-foreground">—</span>}</div>
-          </div>
 
           <div className="text-xs block">
             <span className="text-muted-foreground">Legenda</span>
@@ -823,10 +819,6 @@ function AdminPostEditor({
             </select>
           </label>
 
-          <label className="text-xs block">
-            <span className="text-muted-foreground">Título</span>
-            <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
-          </label>
 
           <label className="text-xs block">
             <span className="text-muted-foreground">Legenda</span>
