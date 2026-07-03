@@ -11,7 +11,7 @@ interface TopBarProps {
 export function TopBar({ title, back, subtitle, right }: TopBarProps) {
   return (
     <div className="sticky top-0 z-40 glass border-b border-hairline">
-      <div className="flex items-center justify-between h-14 px-4">
+      <div className="flex items-center justify-between h-16 px-5 py-2">
         <div className="flex items-center gap-2 min-w-0">
           {back ? (
             <Link
