@@ -321,57 +321,61 @@ function PostPage() {
             </div>
           ) : null}
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            className="hidden"
-            onChange={handleUpload}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="absolute bottom-3 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando…
-              </>
-            ) : (
-              <>
-                <Pencil className="h-3.5 w-3.5" /> Trocar mídia
-              </>
-            )}
-          </button>
-          {isVideoUrl(post.media) ? (
+          {canEdit ? (
             <>
               <input
-                ref={coverInputRef}
+                ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 className="hidden"
-                onChange={handleCoverUpload}
+                onChange={handleUpload}
               />
               <button
-                onClick={() => coverInputRef.current?.click()}
-                disabled={uploadingCover}
-                className="absolute bottom-14 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-3 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
               >
-                {uploadingCover ? (
+                {uploading ? (
                   <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando capa…
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando…
                   </>
                 ) : (
                   <>
-                    <Images className="h-3.5 w-3.5" /> Trocar capa
+                    <Pencil className="h-3.5 w-3.5" /> Trocar mídia
                   </>
                 )}
               </button>
+              {isVideoUrl(post.media) ? (
+                <>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCoverUpload}
+                  />
+                  <button
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={uploadingCover}
+                    className="absolute bottom-14 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
+                  >
+                    {uploadingCover ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando capa…
+                      </>
+                    ) : (
+                      <>
+                        <Images className="h-3.5 w-3.5" /> Trocar capa
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : null}
+              <div className="absolute bottom-3 left-3 h-7 px-2 rounded-full bg-black/45 text-white text-[10px] font-medium flex items-center gap-1">
+                <Film className="h-3 w-3" /> Máx {MAX_MB}MB · imagem ou vídeo
+              </div>
             </>
           ) : null}
-          <div className="absolute bottom-3 left-3 h-7 px-2 rounded-full bg-black/45 text-white text-[10px] font-medium flex items-center gap-1">
-            <Film className="h-3 w-3" /> Máx {MAX_MB}MB · imagem ou vídeo
-          </div>
         </motion.div>
 
 
