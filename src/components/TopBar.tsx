@@ -11,10 +11,10 @@ interface TopBarProps {
 export function TopBar({ title, back, subtitle, right }: TopBarProps) {
   return (
     <div
-      className="sticky top-0 z-[70] glass border-b border-hairline"
-      style={{ paddingTop: "max(env(safe-area-inset-top), 0px)" }}
+      className="sticky top-0 z-[70] glass border-b border-hairline pwa-safe-top"
     >
-      <div className="flex items-center justify-between h-[68px] px-5 pt-3 pb-2.5 standalone:pt-6">
+      <div className="flex items-center justify-between h-[68px] px-5 pt-3 pb-2.5">
+
 
         <div className="flex items-center gap-2 min-w-0">
           {back ? (
