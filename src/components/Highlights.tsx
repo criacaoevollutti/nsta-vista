@@ -26,6 +26,9 @@ export function Highlights({ scopeId, readOnly = false }: { scopeId?: string; re
     setNames(loadJSON(namesKey(scope)));
   }, [scope]);
 
+  if (!scopeId) return null;
+
+
   const renameHighlight = (id: string, next: string) => {
     const updated = { ...names, [id]: next };
     setNames(updated);
