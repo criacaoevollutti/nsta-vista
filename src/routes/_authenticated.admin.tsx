@@ -273,7 +273,8 @@ function AdminPage() {
         <Modal onClose={() => setShowForm(false)}>
           <CreateForm
             onCreate={async (payload) => {
-              if (!adminPin) return toast.error("PIN de admin indisponível");
+              if (!adminPin) { toast.error("PIN de admin indisponível"); return; }
+
               try {
                 const { data, error } = await supabase.rpc("admin_create_profile", {
                   _admin_pin: adminPin,
