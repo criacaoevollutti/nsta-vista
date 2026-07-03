@@ -530,85 +530,161 @@ function PostReviewSheet({
   onClose: () => void;
   onUpdated: (p: SharedPost) => void;
 }) {
-  const [comment, setComment] = useState(post.client_comment ?? "");
-  const [saving, setSaving] = useState<"approved" | "changes_requested" | null>(null);
-  const isApproved = post.approval_status === "approved";
-
-  const submit = async (action: "approved" | "changes_requested") => {
-    const targetStatus: "approved" | "changes_requested" | "pending" =
-      action === "approved" && isApproved ? "pending" : action;
-    const targetComment = targetStatus === "pending" ? "" : comment;
-    setSaving(action);
-    const { data, error } = await supabase.rpc("set_post_approval_by_pin", {
-      _pin: pin,
-      _post_id: post.id,
-      _status: targetStatus,
-      _comment: targetComment,
-    });
-    setSaving(null);
-    if (error || !data) {
-      toast.error("Não foi possível salvar");
-      return;
-    }
-    toast.success(
-      targetStatus === "approved"
-        ? "Post aprovado"
-        : targetStatus === "pending"
-        ? "Aprovação desfeita"
-        : "Alteração solicitada"
-    );
-    onUpdated({ ...post, approval_status: targetStatus, client_comment: targetComment });
-  };
+  const [saving, setSaving] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportText, setSupportText] = useState(post.client_comment ?? "");
+  const [sendingSupport, setSendingSupport] = useState(false);
+  const [justApproved, setJustApproved] = useState(false);
 
   const isVideo = isVideoUrl(post.media || "");
   const ratio = isVideo || post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]";
 
+  const setStatus = async (
+    status: "approved" | "changes_requested" | "pending",
+    comment: string,
+  ) => {
+    const { data, error } = await supabase.rpc("set_post_approval_by_pin", {
+      _pin: pin,
+      _post_id: post.id,
+      _status: status,
+      _comment: comment,
+    });
+    if (error || !data) {
+      toast.error("Não foi possível salvar");
+      return false;
+    }
+    onUpdated({ ...post, approval_status: status, client_comment: comment });
+    return true;
+  };
+
   return (
     <div className="fixed inset-x-0 bottom-0 top-[68px] z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      {justApproved ? (
+        <div className="fixed inset-0 z-[60] grid place-items-center pointer-events-none animate-fade-in">
+          <div className="h-28 w-28 rounded-full grid place-items-center text-white bg-status-approved shadow-[0_20px_60px_-10px_oklch(0.68_0.17_150/0.6)] animate-scale-in">
+            <Check className="h-14 w-14" strokeWidth={3.5} />
+          </div>
+        </div>
+      ) : null}
+
       <div className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[calc(100dvh-68px)] sm:max-h-[calc(100dvh-100px)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        {isVideo ? (
-          <video src={post.media} controls playsInline preload="metadata" className={`w-full object-contain bg-black ${ratio}`} />
-        ) : (
-          <img src={post.media || post.thumb} alt={post.title} className={`w-full object-cover ${ratio}`} />
-        )}
-        <div className="p-4 space-y-4">
-          <div>
-            <div className="text-xs text-muted-foreground">{post.date} • {post.time}</div>
-            <h2 className="font-semibold mt-1">{post.title}</h2>
-            <p className="text-sm whitespace-pre-wrap text-muted-foreground mt-2">{post.caption}</p>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Comentário para a agência (opcional)</label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={3}
-              className="mt-1 w-full rounded-lg border border-hairline bg-background p-2 text-sm resize-none"
-              placeholder="Ex: trocar a legenda para..."
-            />
-          </div>
-          <div className="flex gap-2">
+        <div className="relative bg-black">
+          {isVideo ? (
+            <video src={post.media} controls playsInline preload="metadata" className={`w-full object-contain ${ratio}`} />
+          ) : (
+            <img src={post.media || post.thumb} alt={post.title} className={`w-full object-cover ${ratio}`} />
+          )}
+        </div>
+
+        <div className="p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => submit("changes_requested")}
-              disabled={saving !== null}
-              className="flex-1 h-11 rounded-full border border-hairline text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              onClick={async () => {
+                setSaving(true);
+                const ok = await setStatus("approved", "");
+                setSaving(false);
+                if (!ok) return;
+                toast.success("Aprovado");
+                setJustApproved(true);
+                setTimeout(() => setJustApproved(false), 1500);
+              }}
+              disabled={saving}
+              className="h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-status-approved"
             >
-              {saving === "changes_requested" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareWarning className="h-4 w-4" />}
-              Solicitar alteração
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+              Aprovar
             </button>
             <button
-              onClick={() => submit("approved")}
-              disabled={saving !== null}
-              className={`flex-1 h-11 rounded-full text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50 ${
-                isApproved
-                  ? "border border-status-approved text-status-approved bg-status-approved/10"
-                  : "bg-status-approved text-white"
-              }`}
+              onClick={() => setSupportOpen((v) => !v)}
+              disabled={saving}
+              aria-pressed={supportOpen}
+              className="h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-brand-orange"
             >
-              {saving === "approved" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
-              {isApproved ? "Aprovado" : "Aprovar"}
+              <MessageSquareWarning className="h-4 w-4" />
+              Solicitar suporte
             </button>
           </div>
+
+          {post.approval_status !== "pending" ? (
+            <button
+              onClick={async () => {
+                const ok = await setStatus("pending", "");
+                if (!ok) return;
+                toast.success("Marcação removida");
+                setSupportOpen(false);
+                setSupportText("");
+              }}
+              className="w-full h-10 rounded-full border border-hairline text-sm text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1.5"
+            >
+              Desfazer marcação {post.approval_status === "approved" ? "de aprovação" : "de suporte"}
+            </button>
+          ) : null}
+
+          {supportOpen ? (
+            <div className="rounded-2xl border border-hairline bg-surface-2/40 p-3 space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Descreva o que precisa ser feito
+              </label>
+              <textarea
+                value={supportText}
+                onChange={(e) => setSupportText(e.target.value)}
+                rows={4}
+                placeholder="Ex: gostaria de trocar a foto e ajustar o CTA da legenda..."
+                className="w-full rounded-lg border border-hairline bg-background p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-orange/20"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setSupportOpen(false); setSupportText(post.client_comment ?? ""); }}
+                  className="flex-1 h-10 rounded-full border border-hairline text-sm text-muted-foreground"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!supportText.trim()) { toast.error("Descreva o ajuste"); return; }
+                    setSendingSupport(true);
+                    const ok = await setStatus("changes_requested", supportText);
+                    setSendingSupport(false);
+                    if (!ok) return;
+                    toast.success("Suporte solicitado");
+                    setSupportOpen(false);
+                  }}
+                  disabled={sendingSupport || !supportText.trim()}
+                  className="flex-1 h-10 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-brand-orange"
+                >
+                  {sendingSupport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+                  Enviar
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="text-xs">
+              <span className="text-muted-foreground">Data</span>
+              <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center">{post.date}</div>
+            </div>
+            <div className="text-xs">
+              <span className="text-muted-foreground">Hora</span>
+              <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center">{post.time}</div>
+            </div>
+          </div>
+
+          <div className="text-xs block">
+            <span className="text-muted-foreground">Tipo</span>
+            <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center capitalize">{post.type}</div>
+          </div>
+
+          <div className="text-xs block">
+            <span className="text-muted-foreground">Título</span>
+            <div className="mt-1 w-full min-h-9 rounded-md border border-hairline bg-background px-2 py-2 text-sm">{post.title || <span className="text-muted-foreground">—</span>}</div>
+          </div>
+
+          <div className="text-xs block">
+            <span className="text-muted-foreground">Legenda</span>
+            <div className="mt-1 w-full rounded-md border border-hairline bg-background p-2 text-sm whitespace-pre-wrap min-h-[6rem]">{post.caption || <span className="text-muted-foreground">—</span>}</div>
+          </div>
+
           <button onClick={onClose} className="w-full text-sm text-muted-foreground py-2">Fechar</button>
         </div>
       </div>
