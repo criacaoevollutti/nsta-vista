@@ -9,6 +9,7 @@ import { useLiveProfile } from "@/hooks/use-live-profile";
 
 import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
+import { CarouselMedia } from "@/components/CarouselMedia";
 
 
 export const Route = createFileRoute("/c/$token")({
@@ -34,6 +35,7 @@ type SharedPost = {
   position: number;
   approval_status: "pending" | "approved" | "changes_requested";
   client_comment: string;
+  carousel_images?: string[] | null;
 };
 
 type SharedProfile = {
@@ -247,6 +249,18 @@ function PostReviewSheet({
         {(() => {
           const isVideo = isVideoUrl(post.media || "");
           const ratio = isVideo || post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]";
+          const extras = Array.isArray(post.carousel_images) ? post.carousel_images.filter(Boolean) : [];
+          if (post.type === "carousel" && extras.length > 0) {
+            return (
+              <CarouselMedia
+                cover={post.thumb || post.media}
+                media={post.media}
+                extras={extras}
+                alt={post.title}
+                ratioClass={ratio}
+              />
+            );
+          }
           return isVideo ? (
             <video src={post.media} controls playsInline preload="metadata" className={`w-full object-contain bg-black ${ratio}`} />
           ) : (

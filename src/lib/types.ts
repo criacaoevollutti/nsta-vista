@@ -23,6 +23,7 @@ export interface Post {
   time: string; // HH:mm
   approvalStatus: ApprovalStatus;
   clientComment: string;
+  carouselImages?: string[];
 }
 
 export interface Highlight {
