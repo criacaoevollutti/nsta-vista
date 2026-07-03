@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -15,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/use-is-admin";
-import { createClientCompany, deleteClientCompany } from "@/lib/admin.functions";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -43,8 +42,18 @@ function AdminPage() {
   const [showForm, setShowForm] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const createFn = useServerFn(createClientCompany);
-  const deleteFn = useServerFn(deleteClientCompany);
+  const [adminPin, setAdminPin] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    void supabase
+      .from("profiles")
+      .select("access_pin")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setAdminPin(data?.access_pin ?? null));
+  }, [isAdmin, user.id]);
+
 
   const load = async () => {
     // Fetch profiles and post ownership in a single round-trip pair,
@@ -110,9 +119,15 @@ function AdminPage() {
   };
 
   const removeCompany = async (row: Row) => {
+    if (!adminPin) { toast.error("PIN de admin indisponível"); return; }
     if (!window.confirm(`Excluir "${row.name}" e todos os posts? Ação irreversível.`)) return;
     try {
-      await deleteFn({ data: { userId: row.id } });
+      const { data, error } = await supabase.rpc("admin_delete_profile", {
+        _admin_pin: adminPin,
+        _target_id: row.id,
+      });
+      if (error) throw error;
+      if (!data) throw new Error("Falha ao excluir");
       toast.success("Empresa excluída");
       setSelectedId(null);
       void load();
@@ -120,6 +135,7 @@ function AdminPage() {
       toast.error(e instanceof Error ? e.message : "Falha ao excluir");
     }
   };
+
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -257,15 +273,25 @@ function AdminPage() {
         <Modal onClose={() => setShowForm(false)}>
           <CreateForm
             onCreate={async (payload) => {
+              if (!adminPin) { toast.error("PIN de admin indisponível"); return; }
+
               try {
-                const res = await createFn({ data: payload });
-                toast.success(`Empresa criada · PIN ${res.pin}`);
+                const { data, error } = await supabase.rpc("admin_create_profile", {
+                  _admin_pin: adminPin,
+                  _name: payload.name,
+                  _handle: payload.handle,
+                });
+                if (error) throw error;
+                const res = data as { pin?: string; access_pin?: string } | null;
+                const pin = res?.access_pin ?? res?.pin ?? "----";
+                toast.success(`Empresa criada · PIN ${pin}`);
                 setShowForm(false);
                 void load();
               } catch (e) {
                 toast.error(e instanceof Error ? e.message : "Falha ao criar");
               }
             }}
+
           />
         </Modal>
       ) : null}
