@@ -6,25 +6,32 @@ interface MediaThumbProps {
   alt?: string;
   className?: string;
   showPlayIcon?: boolean;
+  /** Force video treatment (e.g. thumb is an image cover for a reel/video). */
+  isVideo?: boolean;
 }
 
-export function MediaThumb({ src, alt, className, showPlayIcon }: MediaThumbProps) {
+export function MediaThumb({ src, alt, className, showPlayIcon, isVideo }: MediaThumbProps) {
   if (!src) {
     return <div className={className + " bg-surface-2"} />;
   }
 
-  const isVideo = isVideoUrl(src);
+  const treatAsVideo = isVideo ?? isVideoUrl(src);
+  const urlIsVideo = isVideoUrl(src);
 
-  if (isVideo) {
+  if (treatAsVideo) {
     return (
       <div className={"relative overflow-hidden " + className}>
-        <video
-          src={src}
-          className="h-full w-full object-cover"
-          preload="metadata"
-          muted
-          playsInline
-        />
+        {urlIsVideo ? (
+          <video
+            src={src}
+            className="h-full w-full object-cover"
+            preload="metadata"
+            muted
+            playsInline
+          />
+        ) : (
+          <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
+        )}
         {showPlayIcon && (
           <div className="absolute inset-0 grid place-items-center bg-black/10">
             <div className="h-8 w-8 rounded-full bg-white/30 backdrop-blur-sm grid place-items-center">
