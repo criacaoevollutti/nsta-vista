@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, Loader2, MessageSquareWarning, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
 import { supabase } from "@/integrations/supabase/client";
+import { useLiveProfile } from "@/hooks/use-live-profile";
 
 import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
+
 
 export const Route = createFileRoute("/c/$token")({
   ssr: false,
@@ -51,7 +53,7 @@ function SharedView() {
   const [notFound, setNotFound] = useState(false);
   const [active, setActive] = useState<SharedPost | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const { data, error } = await supabase.rpc("get_shared_profile", { _token: token });
     if (error || !data) {
       setNotFound(true);
@@ -62,12 +64,14 @@ function SharedView() {
     setProfile(payload.profile);
     setPosts((payload.posts ?? []).slice(0, 12));
     setLoading(false);
-  };
+  }, [token]);
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [load]);
+
+  useLiveProfile(profile?.id ?? null, load);
+
 
   if (loading) {
     return (

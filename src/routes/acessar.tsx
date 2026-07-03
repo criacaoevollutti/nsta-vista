@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
 import { EditableText } from "@/components/EditableText";
+import { useLiveProfile } from "@/hooks/use-live-profile";
+
 
 export const Route = createFileRoute("/acessar")({
   ssr: false,
@@ -63,6 +65,17 @@ function AccessPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{ profile: SharedProfile; posts: SharedPost[]; pin: string } | null>(null);
+
+  const refetchCurrent = useCallback(async () => {
+    if (!data?.pin) return;
+    const { data: res } = await supabase.rpc("get_profile_by_pin", { _pin: data.pin });
+    if (!res) return;
+    const payload = res as { profile: SharedProfile; posts: SharedPost[] };
+    setData({ profile: payload.profile, posts: (payload.posts ?? []).slice(0, 12), pin: data.pin });
+  }, [data?.pin]);
+
+  useLiveProfile(data?.profile?.id ?? null, refetchCurrent);
+
   const [adminList, setAdminList] = useState<AdminProfile[] | null>(null);
   const [adminPin, setAdminPin] = useState<string | null>(null);
 
