@@ -616,7 +616,11 @@ function AdminPostEditor({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportText, setSupportText] = useState(post.client_comment ?? "");
+  const [sendingSupport, setSendingSupport] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
 
   const isVideo = isVideoUrl(form.media || "");
   const ratio = isVideo || form.type === "reel" || form.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]";
@@ -691,7 +695,7 @@ function AdminPostEditor({
         </div>
 
         <div className="p-4 space-y-3">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={async () => {
                 await save();
@@ -711,34 +715,61 @@ function AdminPostEditor({
               Aprovar
             </button>
             <button
-              onClick={async () => {
-                const msg = window.prompt("Descreva o ajuste desejado:", post.client_comment ?? "");
-                if (msg === null) return;
-                await save();
-                const { error } = await supabase.rpc("admin_update_post", {
-                  _admin_pin: adminPin,
-                  _post_id: post.id,
-                  _patch: { approval_status: "changes_requested", client_comment: msg } as unknown as never,
-                });
-                if (error) { toast.error("Falha ao enviar"); return; }
-                toast.success("Suporte solicitado");
-                onUpdated({ ...post, ...form, approval_status: "changes_requested", client_comment: msg });
-              }}
+              onClick={() => setSupportOpen((v) => !v)}
               disabled={saving}
+              aria-pressed={supportOpen}
               className="h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-brand-orange"
             >
               <MessageSquareWarning className="h-4 w-4" />
               Solicitar suporte
             </button>
-            <button
-              onClick={remove}
-              disabled={deleting || saving}
-              className="h-11 rounded-full border border-hairline text-sm text-status-revision inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Delete className="h-4 w-4" />}
-              Excluir
-            </button>
           </div>
+
+          {supportOpen ? (
+            <div className="rounded-2xl border border-hairline bg-surface-2/40 p-3 space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Descreva o que precisa ser feito
+              </label>
+              <textarea
+                value={supportText}
+                onChange={(e) => setSupportText(e.target.value)}
+                rows={4}
+                placeholder="Ex: gostaria de trocar a foto e ajustar o CTA da legenda..."
+                className="w-full rounded-lg border border-hairline bg-background p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-orange/20"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setSupportOpen(false); setSupportText(post.client_comment ?? ""); }}
+                  className="flex-1 h-10 rounded-full border border-hairline text-sm text-muted-foreground"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!supportText.trim()) { toast.error("Descreva o ajuste"); return; }
+                    setSendingSupport(true);
+                    await save();
+                    const { error } = await supabase.rpc("admin_update_post", {
+                      _admin_pin: adminPin,
+                      _post_id: post.id,
+                      _patch: { approval_status: "changes_requested", client_comment: supportText } as unknown as never,
+                    });
+                    setSendingSupport(false);
+                    if (error) { toast.error("Falha ao enviar"); return; }
+                    toast.success("Suporte solicitado");
+                    onUpdated({ ...post, ...form, approval_status: "changes_requested", client_comment: supportText });
+                    setSupportOpen(false);
+                  }}
+                  disabled={sendingSupport || !supportText.trim()}
+                  className="flex-1 h-10 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-brand-orange"
+                >
+                  {sendingSupport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+                  Enviar
+                </button>
+              </div>
+            </div>
+          ) : null}
+
 
           <div className="grid grid-cols-2 gap-2">
             <label className="text-xs">
