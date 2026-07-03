@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { ArrowLeft, Grid3x3, Loader2, PlaySquare, ShieldAlert, UserSquare2 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -10,6 +10,8 @@ import { Timeline } from "@/components/Timeline";
 import { usePosts, MAX_POSTS } from "@/lib/store";
 import { useProfile } from "@/lib/profile-store";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useLiveProfile } from "@/hooks/use-live-profile";
+
 
 export const Route = createFileRoute("/_authenticated/admin/edit/$userId")({
   ssr: false,
@@ -36,8 +38,18 @@ function AdminEditPage() {
       void useProfile.getState().hydrate(targetId);
       void usePosts.getState().hydrate(targetId);
     }
-    
   }, [isAdmin, targetId]);
+
+  const refetchTarget = useCallback(() => {
+    if (!isAdmin) return;
+    useProfile.getState().reset();
+    usePosts.getState().reset();
+    void useProfile.getState().hydrate(targetId);
+    void usePosts.getState().hydrate(targetId);
+  }, [isAdmin, targetId]);
+
+  useLiveProfile(isAdmin ? targetId : null, refetchTarget);
+
 
   if (loading) {
     return (
