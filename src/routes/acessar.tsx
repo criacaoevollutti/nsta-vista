@@ -422,7 +422,7 @@ function ClientFeed({
         </div>
 
 
-        <Highlights />
+        <Highlights scopeId={prof.id} />
 
         <div className="px-4 py-3 text-xs text-muted-foreground border-b border-hairline">
           {approvedCount} de {posts.length} aprovados
