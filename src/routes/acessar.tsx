@@ -48,6 +48,8 @@ type SharedProfile = {
   followers: string;
   following: number;
   posts_count: number | null;
+  highlight_names?: Record<string, string> | null;
+  highlight_covers?: Record<string, string> | null;
 };
 
 
