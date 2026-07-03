@@ -7,6 +7,8 @@ export type PostStatus =
 
 export type PostType = "image" | "carousel" | "video" | "reel" | "story";
 
+export type ApprovalStatus = "pending" | "approved" | "changes_requested";
+
 export interface Post {
   id: string;
   media: string;
@@ -19,6 +21,8 @@ export interface Post {
   notes: string;
   date: string; // ISO yyyy-mm-dd
   time: string; // HH:mm
+  approvalStatus: ApprovalStatus;
+  clientComment: string;
 }
 
 export interface Highlight {
