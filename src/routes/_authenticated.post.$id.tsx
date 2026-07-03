@@ -18,8 +18,8 @@ import {
   Sparkles,
   Target,
   Trash2,
-  
-  X,
+
+
 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { usePosts } from "@/lib/store";
