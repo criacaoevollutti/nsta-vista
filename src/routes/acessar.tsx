@@ -691,39 +691,7 @@ function AdminPostEditor({
         </div>
 
         <div className="p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <label className="text-xs">
-              <span className="text-muted-foreground">Data</span>
-              <input type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
-            </label>
-            <label className="text-xs">
-              <span className="text-muted-foreground">Hora</span>
-              <input type="time" value={form.time} onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
-            </label>
-          </div>
-
-          <label className="text-xs block">
-            <span className="text-muted-foreground">Tipo</span>
-            <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm">
-              <option value="image">Imagem</option>
-              <option value="carousel">Carrossel</option>
-              <option value="video">Vídeo</option>
-              <option value="reel">Reels</option>
-              <option value="story">Stories</option>
-            </select>
-          </label>
-
-          <label className="text-xs block">
-            <span className="text-muted-foreground">Título</span>
-            <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
-          </label>
-
-          <label className="text-xs block">
-            <span className="text-muted-foreground">Legenda</span>
-            <textarea value={form.caption} onChange={(e) => setForm((f) => ({ ...f, caption: e.target.value }))} rows={5} className="mt-1 w-full rounded-md border border-hairline bg-background p-2 text-sm resize-none" />
-          </label>
-
-          <div className="grid grid-cols-3 gap-2 pt-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={async () => {
                 await save();
@@ -771,9 +739,41 @@ function AdminPostEditor({
               Excluir
             </button>
           </div>
-          <button onClick={onClose} className="w-full text-sm text-muted-foreground py-2">Fechar</button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs">
+              <span className="text-muted-foreground">Data</span>
+              <input type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
+            </label>
+            <label className="text-xs">
+              <span className="text-muted-foreground">Hora</span>
+              <input type="time" value={form.time} onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
+            </label>
+          </div>
+
+          <label className="text-xs block">
+            <span className="text-muted-foreground">Tipo</span>
+            <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm">
+              <option value="image">Imagem</option>
+              <option value="carousel">Carrossel</option>
+              <option value="video">Vídeo</option>
+              <option value="reel">Reels</option>
+              <option value="story">Stories</option>
+            </select>
+          </label>
+
+          <label className="text-xs block">
+            <span className="text-muted-foreground">Título</span>
+            <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm" />
+          </label>
+
+          <label className="text-xs block">
+            <span className="text-muted-foreground">Legenda</span>
+            <textarea value={form.caption} onChange={(e) => setForm((f) => ({ ...f, caption: e.target.value }))} rows={5} className="mt-1 w-full rounded-md border border-hairline bg-background p-2 text-sm resize-none" />
+          </label>
 
         </div>
+
       </div>
     </div>
   );
