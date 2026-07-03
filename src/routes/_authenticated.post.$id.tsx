@@ -96,6 +96,7 @@ function PostPage() {
   const post = usePosts((s) => s.posts.find((p) => p.id === id));
   const update = usePosts((s) => s.update);
   const setStatus = usePosts((s) => s.setStatus);
+  const setApproval = usePosts((s) => s.setApproval);
   const duplicate = usePosts((s) => s.duplicate);
   const remove = usePosts((s) => s.remove);
   const [uid, setUid] = useState<string | undefined>(undefined);
@@ -236,16 +237,19 @@ function PostPage() {
 
   const status = STATUS_META[post.status];
 
-  const approve = () => {
-    setStatus(post.id, "approved");
+  const approve = async () => {
+    const ok = await setApproval(post.id, "approved", post.clientComment ?? "");
+    if (!ok) return;
+    if (canEdit) setStatus(post.id, "approved");
     setJustApproved(true);
     setTimeout(() => setJustApproved(false), 1400);
   };
 
-  const sendSupport = () => {
+  const sendSupport = async () => {
     if (!supportText.trim()) return;
-    setStatus(post.id, "revision");
-    update(post.id, { notes: post.notes ? `${post.notes}\n— ${supportText}` : supportText });
+    const ok = await setApproval(post.id, "changes_requested", supportText);
+    if (!ok) return;
+    if (canEdit) setStatus(post.id, "revision");
     setSupportSent(true);
     setTimeout(() => {
       setSupportOpen(false);
@@ -482,15 +486,15 @@ function PostPage() {
       <div className="absolute bottom-0 inset-x-0 glass border-t border-hairline p-4 pb-6 space-y-2">
         <button
           onClick={approve}
-          disabled={post.status === "approved"}
+          disabled={post.approvalStatus === "approved"}
           className={`w-full h-12 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 transition active:scale-[0.98] ${
-            post.status === "approved"
+            post.approvalStatus === "approved"
               ? "bg-success-soft text-status-approved"
               : "bg-status-approved text-white shadow-[0_10px_30px_-12px_oklch(0.68_0.17_150/0.55)]"
           }`}
         >
           <Check className="h-5 w-5" strokeWidth={3} />
-          {post.status === "approved" ? "Aprovado" : "Aprovar publicação"}
+          {post.approvalStatus === "approved" ? "Aprovado" : "Aprovar publicação"}
         </button>
         <button
           onClick={() => setSupportOpen(true)}

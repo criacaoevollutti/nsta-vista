@@ -97,4 +97,6 @@ export const initialPosts: Post[] = photos.map((id, i) => ({
   notes: "",
   date: dates[i],
   time: times[i],
+  approvalStatus: "pending",
+  clientComment: "",
 }));

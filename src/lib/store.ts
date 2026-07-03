@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { toast } from "sonner";
-import type { Post, PostStatus } from "./types";
+import type { ApprovalStatus, Post, PostStatus } from "./types";
 import { initialPosts } from "./mock-data";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
@@ -19,6 +19,7 @@ interface PostsState {
   reorder: (fromId: string, toId: string) => void;
   update: (id: string, patch: Partial<Post>) => void;
   setStatus: (id: string, status: PostStatus) => void;
+  setApproval: (id: string, status: ApprovalStatus, comment: string) => Promise<boolean>;
   duplicate: (id: string) => void;
   remove: (id: string) => void;
   createAt: (position: number) => Promise<string | null>;
@@ -38,6 +39,8 @@ type PostRow = {
   date: string;
   time: string;
   position: number;
+  approval_status: ApprovalStatus;
+  client_comment: string;
 };
 
 const rowToPost = (r: PostRow): Post => ({
@@ -52,6 +55,8 @@ const rowToPost = (r: PostRow): Post => ({
   notes: r.notes,
   date: r.date,
   time: r.time,
+  approvalStatus: (r.approval_status ?? "pending") as ApprovalStatus,
+  clientComment: r.client_comment ?? "",
 });
 
 const DB_COLUMNS = [
@@ -170,6 +175,24 @@ export const usePosts = create<PostsState>((set, get) => ({
       .then(({ error }) => {
         if (error) console.error("[posts.setStatus]", error);
       });
+  },
+
+  setApproval: async (id, status, comment) => {
+    set((s) => ({
+      posts: s.posts.map((p) =>
+        p.id === id ? { ...p, approvalStatus: status, clientComment: comment } : p,
+      ),
+    }));
+    const { error } = await supabase
+      .from("posts")
+      .update({ approval_status: status, client_comment: comment })
+      .eq("id", id);
+    if (error) {
+      console.error("[posts.setApproval]", error);
+      toast.error("Não foi possível salvar a resposta");
+      return false;
+    }
+    return true;
   },
 
   duplicate: (id) => {
