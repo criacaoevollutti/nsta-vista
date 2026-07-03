@@ -1,70 +1,123 @@
-import { Pencil, Plus } from "lucide-react";
+import { Loader2, Pencil, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { highlights } from "@/lib/mock-data";
 import { EditableText } from "@/components/EditableText";
+import { supabase } from "@/integrations/supabase/client";
 
-const namesKey = (scope: string) => `highlight-names:${scope}`;
-const coversKey = (scope: string) => `highlight-covers:${scope}`;
+type Dict = Record<string, string>;
 
-function loadJSON(key: string): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(window.localStorage.getItem(key) || "{}");
-  } catch {
-    return {};
-  }
+interface HighlightsProps {
+  scopeId?: string;
+  readOnly?: boolean;
+  /** When provided (PIN/token flows), seed initial data instead of fetching. */
+  initialNames?: Dict;
+  initialCovers?: Dict;
+  /** Admin PIN — if provided, saves via admin RPC instead of RLS-authenticated update. */
+  adminPin?: string;
 }
 
-export function Highlights({ scopeId, readOnly = false }: { scopeId?: string; readOnly?: boolean }) {
-  const scope = scopeId || "default";
-  const [covers, setCovers] = useState<Record<string, string>>({});
-  const [names, setNames] = useState<Record<string, string>>({});
+async function resizeImageToDataUrl(file: File, max = 256): Promise<string> {
+  const dataUrl = await new Promise<string>((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result));
+    r.onerror = () => rej(r.error);
+    r.readAsDataURL(file);
+  });
+  const img = await new Promise<HTMLImageElement>((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => rej(new Error("img"));
+    i.src = dataUrl;
+  });
+  const scale = Math.min(1, max / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return dataUrl;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", 0.82);
+}
+
+export function Highlights({ scopeId, readOnly = false, initialNames, initialCovers, adminPin }: HighlightsProps) {
+  const [covers, setCovers] = useState<Dict>(initialCovers ?? {});
+  const [names, setNames] = useState<Dict>(initialNames ?? {});
+  const [saving, setSaving] = useState<string | null>(null);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
-    setCovers(loadJSON(coversKey(scope)));
-    setNames(loadJSON(namesKey(scope)));
-  }, [scope]);
+    if (initialNames || initialCovers) {
+      setNames(initialNames ?? {});
+      setCovers(initialCovers ?? {});
+      return;
+    }
+    if (!scopeId) return;
+    let cancelled = false;
+    void supabase
+      .from("profiles")
+      .select("highlight_names, highlight_covers")
+      .eq("id", scopeId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        setNames((data.highlight_names as Dict) ?? {});
+        setCovers((data.highlight_covers as Dict) ?? {});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [scopeId, initialNames, initialCovers]);
 
   if (!scopeId) return null;
 
+  const persist = async (nextNames: Dict, nextCovers: Dict) => {
+    if (adminPin) {
+      const { data, error } = await supabase.rpc("admin_update_highlights", {
+        _admin_pin: adminPin,
+        _target_id: scopeId,
+        _names: nextNames,
+        _covers: nextCovers,
+      });
+      if (error || !data) throw error ?? new Error("update failed");
+      return;
+    }
+    const { error } = await supabase
+      .from("profiles")
+      .update({ highlight_names: nextNames, highlight_covers: nextCovers })
+      .eq("id", scopeId);
+    if (error) throw error;
+  };
 
-  const renameHighlight = (id: string, next: string) => {
+  const renameHighlight = async (id: string, next: string) => {
     const updated = { ...names, [id]: next };
     setNames(updated);
     try {
-      window.localStorage.setItem(namesKey(scope), JSON.stringify(updated));
+      await persist(updated, covers);
     } catch {
-      /* ignore quota */
+      toast.error("Não foi possível salvar o nome");
     }
   };
 
-
-  const pick = (id: string, file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const next = { ...covers, [id]: String(reader.result) };
+  const pick = async (id: string, file: File) => {
+    setSaving(id);
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 256);
+      const next = { ...covers, [id]: dataUrl };
       setCovers(next);
-      try {
-        window.localStorage.setItem(coversKey(scope), JSON.stringify(next));
-      } catch {
-        /* ignore quota */
-      }
-    };
-    reader.readAsDataURL(file);
+      await persist(names, next);
+    } catch {
+      toast.error("Não foi possível salvar a capa");
+    } finally {
+      setSaving(null);
+    }
   };
 
   return (
     <div className="px-3 pt-2 pb-4 border-b border-hairline">
       <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x">
-        {!readOnly && (
-          <div className="flex flex-col items-center gap-1 snap-start shrink-0">
-            <div className="h-16 w-16 rounded-full border border-hairline grid place-items-center bg-surface hover:bg-surface-2 transition active:scale-95">
-              <Plus className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <span className="text-[11px] text-muted-foreground">Novo</span>
-          </div>
-        )}
         {highlights.map((h) => {
           const cover = covers[h.id] || h.cover;
           return (
@@ -91,7 +144,11 @@ export function Highlights({ scopeId, readOnly = false }: { scopeId?: string; re
                       title="Trocar capa"
                       className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-foreground text-background grid place-items-center border-2 border-background shadow-sm hover:scale-105 active:scale-95 transition"
                     >
-                      <Pencil className="h-2.5 w-2.5" />
+                      {saving === h.id ? (
+                        <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                      ) : (
+                        <Pencil className="h-2.5 w-2.5" />
+                      )}
                     </button>
                     <input
                       ref={(el) => {
@@ -102,7 +159,7 @@ export function Highlights({ scopeId, readOnly = false }: { scopeId?: string; re
                       className="hidden"
                       onChange={(e) => {
                         const f = e.target.files?.[0];
-                        if (f) pick(h.id, f);
+                        if (f) void pick(h.id, f);
                         e.target.value = "";
                       }}
                     />
@@ -117,7 +174,7 @@ export function Highlights({ scopeId, readOnly = false }: { scopeId?: string; re
                 <EditableText
                   as="span"
                   value={names[h.id] ?? h.name}
-                  onChange={(v) => renameHighlight(h.id, v || h.name)}
+                  onChange={(v) => void renameHighlight(h.id, v || h.name)}
                   className="text-[11px] text-foreground/80 max-w-[70px] truncate block text-center"
                   placeholder="Nome"
                 />
