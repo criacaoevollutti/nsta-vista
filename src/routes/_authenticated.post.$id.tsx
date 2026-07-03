@@ -18,8 +18,8 @@ import {
   Sparkles,
   Target,
   Trash2,
-  
-  X,
+
+
 } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { usePosts } from "@/lib/store";
@@ -254,9 +254,9 @@ function PostPage() {
     setTimeout(() => {
       setSupportOpen(false);
       setSupportSent(false);
-      setSupportText("");
     }, 1200);
   };
+
 
   return (
     <AppFrame>
@@ -482,28 +482,93 @@ function PostPage() {
         </div>
       </div>
 
-      {/* Sticky action bar */}
-      <div className="absolute bottom-0 inset-x-0 glass border-t border-hairline p-4 pb-6 space-y-2">
-        <button
-          onClick={approve}
-          disabled={post.approvalStatus === "approved"}
-          className={`w-full h-12 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 transition active:scale-[0.98] ${
-            post.approvalStatus === "approved"
-              ? "bg-success-soft text-status-approved"
-              : "bg-status-approved text-white shadow-[0_10px_30px_-12px_oklch(0.68_0.17_150/0.55)]"
-          }`}
-        >
-          <Check className="h-5 w-5" strokeWidth={3} />
-          {post.approvalStatus === "approved" ? "Aprovado" : "Aprovar publicação"}
-        </button>
-        <button
-          onClick={() => setSupportOpen(true)}
-          className="w-full h-12 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 bg-brand-orange text-white shadow-[0_10px_30px_-12px_oklch(0.72_0.18_50/0.55)] active:scale-[0.98] transition"
-        >
-          <MessageSquare className="h-4 w-4" />
-          Solicitar suporte urgente
-        </button>
+      {/* Sticky decision panel */}
+      <div className="absolute bottom-0 inset-x-0 glass border-t border-hairline">
+        <div className="px-5 pt-4 pb-1">
+          <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
+            Decisão desta postagem
+          </h3>
+          <p className="text-[13px] text-muted-foreground/90 mt-0.5">
+            Revise o conteúdo e escolha como prosseguir.
+          </p>
+        </div>
 
+        <div className="p-4 pt-3 pb-6 space-y-3">
+          {/* Paired action buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={approve}
+              disabled={post.approvalStatus === "approved"}
+              className={`h-12 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98] shadow-md ${
+                post.approvalStatus === "approved"
+                  ? "bg-success-soft text-status-approved shadow-none"
+                  : "bg-status-approved text-white shadow-[0_8px_20px_-8px_oklch(0.68_0.17_150/0.55)]"
+              }`}
+            >
+              <Check className="h-4 w-4" strokeWidth={3} />
+              {post.approvalStatus === "approved" ? "Aprovado" : "Aprovar"}
+            </button>
+
+            <button
+              onClick={() => setSupportOpen((v) => !v)}
+              aria-pressed={supportOpen}
+              className={`h-12 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98] shadow-md ${
+                supportOpen
+                  ? "bg-brand-orange text-white shadow-[0_8px_20px_-8px_oklch(0.72_0.18_50/0.55)]"
+                  : "bg-brand-orange text-white shadow-[0_8px_20px_-8px_oklch(0.72_0.18_50/0.55)]"
+              }`}
+            >
+              <MessageSquare className="h-4 w-4" strokeWidth={2.5} />
+              Solicitar ajuste
+            </button>
+          </div>
+
+          {/* Inline adjustment flow */}
+          <AnimatePresence initial={false}>
+            {supportOpen ? (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.22 }}
+                className="overflow-hidden"
+              >
+                <div className="bg-surface-2/60 rounded-2xl p-4 border border-hairline space-y-3 mt-1">
+                  <label className="text-xs font-semibold text-foreground ml-1 block">
+                    O que deseja ajustar?
+                  </label>
+                  <textarea
+                    value={supportText}
+                    onChange={(e) => setSupportText(e.target.value)}
+                    rows={3}
+                    placeholder="Ex: gostaria de trocar a foto e ajustar o CTA da legenda..."
+                    className="w-full bg-background border border-hairline rounded-xl p-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none transition-all resize-none"
+                  />
+                  <button
+                    onClick={sendSupport}
+                    disabled={!supportText.trim() || supportSent}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-background border-2 border-brand-orange text-brand-orange hover:bg-brand-orange-soft/40 rounded-full font-bold text-sm transition-all disabled:opacity-50"
+                  >
+                    {supportSent ? (
+                      <>
+                        <Check className="w-4 h-4" strokeWidth={3} />
+                        Enviado
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Enviar solicitação
+                      </>
+                    )}
+                  </button>
+                  <p className="text-[11px] text-center text-muted-foreground px-4">
+                    A equipe da Evollutti receberá seu pedido e notificará sobre as alterações.
+                  </p>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Approved flash overlay */}
@@ -529,15 +594,6 @@ function PostPage() {
         ) : null}
       </AnimatePresence>
 
-      {/* Support sheet */}
-      <SupportSheet
-        open={supportOpen}
-        onClose={() => setSupportOpen(false)}
-        value={supportText}
-        onChange={setSupportText}
-        sent={supportSent}
-        onSend={sendSupport}
-      />
     </AppFrame>
   );
 }
@@ -642,83 +698,5 @@ function SecondaryAction({
       {icon}
       {label}
     </button>
-  );
-}
-
-function SupportSheet({
-  open,
-  onClose,
-  value,
-  onChange,
-  sent,
-  onSend,
-}: {
-  open: boolean;
-  onClose: () => void;
-  value: string;
-  onChange: (v: string) => void;
-  sent: boolean;
-  onSend: () => void;
-}) {
-  return (
-    <AnimatePresence>
-      {open ? (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-40 bg-black/40"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="absolute bottom-0 inset-x-0 z-50 bg-background rounded-t-3xl p-5 pb-7 shadow-[var(--shadow-lg)]"
-          >
-            <div className="flex justify-center mb-3">
-              <span className="h-1 w-10 rounded-full bg-hairline" />
-            </div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[16px] font-semibold tracking-tight">Solicitar suporte</h3>
-              <button
-                onClick={onClose}
-                className="h-8 w-8 grid place-items-center rounded-full hover:bg-surface-2"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="text-[13px] text-muted-foreground mb-3">
-              Descreva o que deseja ajustar nesta publicação. A equipe da Evollutti receberá seu pedido.
-            </p>
-            <textarea
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              rows={4}
-              placeholder="Ex: gostaria de trocar a foto e ajustar o CTA da legenda…"
-              className="w-full resize-none rounded-2xl bg-surface border border-hairline p-3.5 text-[14px] outline-none focus:border-brand-orange/60 transition"
-            />
-            <button
-              onClick={onSend}
-              disabled={sent}
-              className="mt-4 w-full h-12 rounded-2xl font-semibold text-[14.5px] flex items-center justify-center gap-2 bg-brand-orange text-white active:scale-[0.98] transition disabled:opacity-70"
-              style={{ background: "var(--brand-orange)" }}
-            >
-              {sent ? (
-                <>
-                  <Check className="h-5 w-5" strokeWidth={3} /> Enviado
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" /> Enviar solicitação
-                </>
-              )}
-            </button>
-          </motion.div>
-        </>
-      ) : null}
-    </AnimatePresence>
   );
 }
