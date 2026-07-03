@@ -67,7 +67,7 @@ function Home() {
       />
       <div className="flex-1 overflow-y-auto">
         <ProfileHeader approvedCount={approved} total={shown} editable={isAdmin} />
-        <Highlights scopeId={user?.id} />
+        <Highlights scopeId={user?.id} readOnly={!isAdmin} />
 
         {/* Tab bar (visual only, mimics IG) */}
         <div className="grid grid-cols-3 border-b border-hairline">
