@@ -448,7 +448,7 @@ function PostPage() {
                   Tipo
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(["image", "carousel", "video", "reel", "story"] as PostType[]).map((t) => (
+                  {(["image", "carousel", "reel"] as PostType[]).map((t) => (
                     <button
                       key={t}
                       onClick={() => update(post.id, { type: t })}
