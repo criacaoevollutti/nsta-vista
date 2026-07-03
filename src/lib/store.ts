@@ -177,6 +177,24 @@ export const usePosts = create<PostsState>((set, get) => ({
       });
   },
 
+  setApproval: async (id, status, comment) => {
+    set((s) => ({
+      posts: s.posts.map((p) =>
+        p.id === id ? { ...p, approvalStatus: status, clientComment: comment } : p,
+      ),
+    }));
+    const { error } = await supabase
+      .from("posts")
+      .update({ approval_status: status, client_comment: comment })
+      .eq("id", id);
+    if (error) {
+      console.error("[posts.setApproval]", error);
+      toast.error("Não foi possível salvar a resposta");
+      return false;
+    }
+    return true;
+  },
+
   duplicate: (id) => {
     const state = get();
     const idx = state.posts.findIndex((p) => p.id === id);
