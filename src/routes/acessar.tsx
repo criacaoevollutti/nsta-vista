@@ -723,17 +723,56 @@ function AdminPostEditor({
             <textarea value={form.caption} onChange={(e) => setForm((f) => ({ ...f, caption: e.target.value }))} rows={5} className="mt-1 w-full rounded-md border border-hairline bg-background p-2 text-sm resize-none" />
           </label>
 
-          <div className="flex gap-2 pt-2">
-            <button onClick={remove} disabled={deleting || saving} className="h-11 px-3 rounded-full border border-hairline text-sm text-status-revision inline-flex items-center gap-1.5 disabled:opacity-50">
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareWarning className="h-4 w-4" />}
-              Excluir
-            </button>
-            <button onClick={save} disabled={saving} className="flex-1 h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-50" style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}>
+          <div className="grid grid-cols-3 gap-2 pt-2">
+            <button
+              onClick={async () => {
+                await save();
+                const { error } = await supabase.rpc("admin_update_post", {
+                  _admin_pin: adminPin,
+                  _post_id: post.id,
+                  _patch: { approval_status: "approved" } as unknown as never,
+                });
+                if (error) { toast.error("Falha ao aprovar"); return; }
+                toast.success("Aprovado");
+                onUpdated({ ...post, ...form, approval_status: "approved" });
+              }}
+              disabled={saving}
+              className="h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-status-approved"
+            >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
-              Salvar
+              Aprovar
+            </button>
+            <button
+              onClick={async () => {
+                const msg = window.prompt("Descreva o ajuste desejado:", post.client_comment ?? "");
+                if (msg === null) return;
+                await save();
+                const { error } = await supabase.rpc("admin_update_post", {
+                  _admin_pin: adminPin,
+                  _post_id: post.id,
+                  _patch: { approval_status: "changes_requested", client_comment: msg } as unknown as never,
+                });
+                if (error) { toast.error("Falha ao enviar"); return; }
+                toast.success("Suporte solicitado");
+                onUpdated({ ...post, ...form, approval_status: "changes_requested", client_comment: msg });
+              }}
+              disabled={saving}
+              className="h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-brand-orange"
+            >
+              <MessageSquareWarning className="h-4 w-4" />
+              Solicitar suporte
+            </button>
+            <button
+              onClick={remove}
+              disabled={deleting || saving}
+              className="h-11 rounded-full border border-hairline text-sm text-status-revision inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Delete className="h-4 w-4" />}
+              Excluir
             </button>
           </div>
           <button onClick={onClose} className="w-full text-sm text-muted-foreground py-2">Fechar</button>
+
         </div>
       </div>
     </div>
