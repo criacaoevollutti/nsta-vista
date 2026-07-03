@@ -99,9 +99,9 @@ function PostPage() {
   const duplicate = usePosts((s) => s.duplicate);
   const remove = usePosts((s) => s.remove);
   const [uid, setUid] = useState<string | undefined>(undefined);
-  useState(() => {
+  useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => setUid(data.user?.id));
-  });
+  }, []);
   const { isAdmin } = useIsAdmin(uid);
   const canEdit = isAdmin;
 
