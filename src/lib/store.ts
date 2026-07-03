@@ -38,6 +38,8 @@ type PostRow = {
   date: string;
   time: string;
   position: number;
+  approval_status: ApprovalStatus;
+  client_comment: string;
 };
 
 const rowToPost = (r: PostRow): Post => ({
@@ -52,6 +54,8 @@ const rowToPost = (r: PostRow): Post => ({
   notes: r.notes,
   date: r.date,
   time: r.time,
+  approvalStatus: (r.approval_status ?? "pending") as ApprovalStatus,
+  clientComment: r.client_comment ?? "",
 });
 
 const DB_COLUMNS = [
