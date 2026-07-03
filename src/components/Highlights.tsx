@@ -79,36 +79,46 @@ export function Highlights({ scopeId, readOnly = false }: { scopeId?: string; re
                     />
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => inputs.current[h.id]?.click()}
-                  aria-label={`Trocar capa de ${h.name}`}
-                  title="Trocar capa"
-                  className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-foreground text-background grid place-items-center border-2 border-background shadow-sm hover:scale-105 active:scale-95 transition"
-                >
-                  <Pencil className="h-2.5 w-2.5" />
-                </button>
-                <input
-                  ref={(el) => {
-                    inputs.current[h.id] = el;
-                  }}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) pick(h.id, f);
-                    e.target.value = "";
-                  }}
-                />
+                {!readOnly && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => inputs.current[h.id]?.click()}
+                      aria-label={`Trocar capa de ${h.name}`}
+                      title="Trocar capa"
+                      className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-foreground text-background grid place-items-center border-2 border-background shadow-sm hover:scale-105 active:scale-95 transition"
+                    >
+                      <Pencil className="h-2.5 w-2.5" />
+                    </button>
+                    <input
+                      ref={(el) => {
+                        inputs.current[h.id] = el;
+                      }}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) pick(h.id, f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </>
+                )}
               </div>
-              <EditableText
-                as="span"
-                value={names[h.id] ?? h.name}
-                onChange={(v) => renameHighlight(h.id, v || h.name)}
-                className="text-[11px] text-foreground/80 max-w-[70px] truncate block text-center"
-                placeholder="Nome"
-              />
+              {readOnly ? (
+                <span className="text-[11px] text-foreground/80 max-w-[70px] truncate block text-center">
+                  {names[h.id] ?? h.name}
+                </span>
+              ) : (
+                <EditableText
+                  as="span"
+                  value={names[h.id] ?? h.name}
+                  onChange={(v) => renameHighlight(h.id, v || h.name)}
+                  className="text-[11px] text-foreground/80 max-w-[70px] truncate block text-center"
+                  placeholder="Nome"
+                />
+              )}
             </div>
           );
         })}
