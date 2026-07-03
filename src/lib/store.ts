@@ -19,6 +19,7 @@ interface PostsState {
   reorder: (fromId: string, toId: string) => void;
   update: (id: string, patch: Partial<Post>) => void;
   setStatus: (id: string, status: PostStatus) => void;
+  setApproval: (id: string, status: ApprovalStatus, comment: string) => Promise<boolean>;
   duplicate: (id: string) => void;
   remove: (id: string) => void;
   createAt: (position: number) => Promise<string | null>;
