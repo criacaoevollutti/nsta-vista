@@ -54,12 +54,14 @@ export function Highlights({ scopeId, readOnly = false }: { scopeId?: string; re
   return (
     <div className="px-3 pt-2 pb-4 border-b border-hairline">
       <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x">
-        <div className="flex flex-col items-center gap-1 snap-start shrink-0">
-          <div className="h-16 w-16 rounded-full border border-hairline grid place-items-center bg-surface hover:bg-surface-2 transition active:scale-95">
-            <Plus className="h-5 w-5 text-muted-foreground" />
+        {!readOnly && (
+          <div className="flex flex-col items-center gap-1 snap-start shrink-0">
+            <div className="h-16 w-16 rounded-full border border-hairline grid place-items-center bg-surface hover:bg-surface-2 transition active:scale-95">
+              <Plus className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <span className="text-[11px] text-muted-foreground">Novo</span>
           </div>
-          <span className="text-[11px] text-muted-foreground">Novo</span>
-        </div>
+        )}
         {highlights.map((h) => {
           const cover = covers[h.id] || h.cover;
           return (
