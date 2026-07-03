@@ -564,8 +564,8 @@ function PostReviewSheet({
   const ratio = isVideo || post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]";
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 pt-20 sm:pt-20" onClick={onClose}>
+      <div className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {isVideo ? (
           <video src={post.media} controls playsInline preload="metadata" className={`w-full object-contain bg-black ${ratio}`} />
         ) : (
