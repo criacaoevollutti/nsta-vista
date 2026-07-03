@@ -42,8 +42,18 @@ function AdminPage() {
   const [showForm, setShowForm] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const createFn = useServerFn(createClientCompany);
-  const deleteFn = useServerFn(deleteClientCompany);
+  const [adminPin, setAdminPin] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    void supabase
+      .from("profiles")
+      .select("access_pin")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setAdminPin(data?.access_pin ?? null));
+  }, [isAdmin, user.id]);
+
 
   const load = async () => {
     // Fetch profiles and post ownership in a single round-trip pair,
