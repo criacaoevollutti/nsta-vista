@@ -774,13 +774,8 @@ function AdminPostEditor({
 
   return (
     <div className="fixed inset-x-0 bottom-0 top-[68px] z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      {justApproved ? (
-        <div className="fixed inset-0 z-[60] grid place-items-center pointer-events-none animate-fade-in">
-          <div className="h-28 w-28 rounded-full grid place-items-center text-white bg-status-approved shadow-[0_20px_60px_-10px_oklch(0.68_0.17_150/0.6)] animate-scale-in">
-            <Check className="h-14 w-14" strokeWidth={3.5} />
-          </div>
-        </div>
-      ) : null}
+
+
 
       <div className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[calc(100dvh-68px)] sm:max-h-[calc(100dvh-100px)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="relative bg-black">
