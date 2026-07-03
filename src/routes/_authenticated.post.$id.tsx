@@ -24,6 +24,7 @@ import {
 import { AppFrame } from "@/components/AppFrame";
 import { usePosts } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 
 const MAX_MB = 500;
