@@ -43,7 +43,7 @@ export function Highlights({ scopeId }: { scopeId?: string }) {
       const next = { ...covers, [id]: String(reader.result) };
       setCovers(next);
       try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        window.localStorage.setItem(coversKey(scope), JSON.stringify(next));
       } catch {
         /* ignore quota */
       }
