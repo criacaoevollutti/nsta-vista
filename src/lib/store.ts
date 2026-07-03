@@ -41,6 +41,7 @@ type PostRow = {
   position: number;
   approval_status: ApprovalStatus;
   client_comment: string;
+  carousel_images?: unknown;
 };
 
 const rowToPost = (r: PostRow): Post => ({
@@ -57,6 +58,7 @@ const rowToPost = (r: PostRow): Post => ({
   time: r.time,
   approvalStatus: (r.approval_status ?? "pending") as ApprovalStatus,
   clientComment: r.client_comment ?? "",
+  carouselImages: Array.isArray(r.carousel_images) ? (r.carousel_images as string[]) : [],
 });
 
 const DB_COLUMNS = [
