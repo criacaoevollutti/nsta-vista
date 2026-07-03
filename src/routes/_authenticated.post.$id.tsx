@@ -237,16 +237,19 @@ function PostPage() {
 
   const status = STATUS_META[post.status];
 
-  const approve = () => {
-    setStatus(post.id, "approved");
+  const approve = async () => {
+    const ok = await setApproval(post.id, "approved", post.clientComment ?? "");
+    if (!ok) return;
+    if (canEdit) setStatus(post.id, "approved");
     setJustApproved(true);
     setTimeout(() => setJustApproved(false), 1400);
   };
 
-  const sendSupport = () => {
+  const sendSupport = async () => {
     if (!supportText.trim()) return;
-    setStatus(post.id, "revision");
-    update(post.id, { notes: post.notes ? `${post.notes}\n— ${supportText}` : supportText });
+    const ok = await setApproval(post.id, "changes_requested", supportText);
+    if (!ok) return;
+    if (canEdit) setStatus(post.id, "revision");
     setSupportSent(true);
     setTimeout(() => {
       setSupportOpen(false);
