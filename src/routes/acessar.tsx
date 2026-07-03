@@ -101,6 +101,8 @@ function AccessPage() {
       return;
     }
     const payload = res as { profile: SharedProfile; posts: SharedPost[] };
+    setAdminPin(null);
+    setAdminList(null);
     setData({ profile: payload.profile, posts: (payload.posts ?? []).slice(0, 12), pin: value });
   };
 
