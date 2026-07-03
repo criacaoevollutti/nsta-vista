@@ -180,3 +180,11 @@
   box-shadow: var(--shadow-sm);
   border-radius: var(--radius-lg);
 }
+/* Extra top safe-area for installed PWA (standalone display mode) */
+.pwa-safe-top { padding-top: env(safe-area-inset-top, 0px); }
+@media (display-mode: standalone) {
+  .pwa-safe-top { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
+}
+@media (display-mode: fullscreen) {
+  .pwa-safe-top { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
+}
