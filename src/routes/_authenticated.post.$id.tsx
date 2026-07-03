@@ -544,6 +544,7 @@ function EditableField({
   onChange,
   multiline,
   placeholder,
+  readOnly,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -551,6 +552,7 @@ function EditableField({
   onChange: (v: string) => void;
   multiline?: boolean;
   placeholder?: string;
+  readOnly?: boolean;
 }) {
   return (
     <div className="rounded-2xl bg-surface border border-hairline p-3.5 focus-within:border-brand-purple/50 transition">
