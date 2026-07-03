@@ -299,7 +299,15 @@ function PostPage() {
           layoutId={`media-${post.id}`}
           className={`relative w-full bg-surface-2 ${isVideoUrl(post.media) || post.type === "reel" || post.type === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`}
         >
-          {isVideoUrl(post.media) ? (
+          {post.type === "carousel" && (post.carouselImages?.length ?? 0) > 0 ? (
+            <CarouselMedia
+              cover={post.thumb || post.media}
+              media={post.media}
+              extras={post.carouselImages ?? []}
+              alt={post.title}
+              ratioClass="aspect-[4/5]"
+            />
+          ) : isVideoUrl(post.media) ? (
             <video
               key={post.media}
               src={post.media}
@@ -320,9 +328,9 @@ function PostPage() {
               </div>
             </div>
           ) : null}
-          {post.type === "carousel" ? (
+          {post.type === "carousel" && !(post.carouselImages?.length) ? (
             <div className="absolute top-3 right-3 h-7 px-2 rounded-full bg-black/45 text-white text-[11px] font-medium flex items-center gap-1">
-              <Images className="h-3.5 w-3.5" /> 1/5
+              <Images className="h-3.5 w-3.5" /> 1/1
             </div>
           ) : null}
 
