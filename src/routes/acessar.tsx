@@ -433,7 +433,7 @@ function ClientFeed({
         </div>
 
 
-        <Highlights scopeId={prof.id} />
+        <Highlights scopeId={prof.id} readOnly={!isAdmin} />
 
         <div className="px-4 py-3 text-xs text-muted-foreground border-b border-hairline">
           {approvedCount} de {posts.length} aprovados
