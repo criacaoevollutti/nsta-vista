@@ -212,6 +212,10 @@ export type Database = {
         Args: { _admin_pin: string; _post_id: string }
         Returns: boolean
       }
+      admin_delete_profile: {
+        Args: { _admin_pin: string; _target_id: string }
+        Returns: boolean
+      }
       admin_update_post: {
         Args: { _admin_pin: string; _patch: Json; _post_id: string }
         Returns: boolean
