@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, Loader2, MessageSquareWarning, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
 import { supabase } from "@/integrations/supabase/client";
+import { useLiveProfile } from "@/hooks/use-live-profile";
 
 import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
+
 
 export const Route = createFileRoute("/c/$token")({
   ssr: false,
