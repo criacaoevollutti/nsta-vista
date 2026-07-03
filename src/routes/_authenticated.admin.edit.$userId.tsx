@@ -10,6 +10,8 @@ import { Timeline } from "@/components/Timeline";
 import { usePosts, MAX_POSTS } from "@/lib/store";
 import { useProfile } from "@/lib/profile-store";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useLiveProfile } from "@/hooks/use-live-profile";
+
 
 export const Route = createFileRoute("/_authenticated/admin/edit/$userId")({
   ssr: false,
