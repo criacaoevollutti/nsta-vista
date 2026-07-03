@@ -34,6 +34,7 @@ type SharedPost = {
   position: number;
   approval_status: "pending" | "approved" | "changes_requested";
   client_comment: string;
+  carousel_images?: string[] | null;
 };
 
 type SharedProfile = {
