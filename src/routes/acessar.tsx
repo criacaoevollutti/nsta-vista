@@ -529,22 +529,32 @@ function PostReviewSheet({
 }) {
   const [comment, setComment] = useState(post.client_comment ?? "");
   const [saving, setSaving] = useState<"approved" | "changes_requested" | null>(null);
+  const isApproved = post.approval_status === "approved";
 
-  const submit = async (status: "approved" | "changes_requested") => {
-    setSaving(status);
+  const submit = async (action: "approved" | "changes_requested") => {
+    const targetStatus: "approved" | "changes_requested" | "pending" =
+      action === "approved" && isApproved ? "pending" : action;
+    const targetComment = targetStatus === "pending" ? "" : comment;
+    setSaving(action);
     const { data, error } = await supabase.rpc("set_post_approval_by_pin", {
       _pin: pin,
       _post_id: post.id,
-      _status: status,
-      _comment: comment,
+      _status: targetStatus,
+      _comment: targetComment,
     });
     setSaving(null);
     if (error || !data) {
       toast.error("Não foi possível salvar");
       return;
     }
-    toast.success(status === "approved" ? "Post aprovado" : "Alteração solicitada");
-    onUpdated({ ...post, approval_status: status, client_comment: comment });
+    toast.success(
+      targetStatus === "approved"
+        ? "Post aprovado"
+        : targetStatus === "pending"
+        ? "Aprovação desfeita"
+        : "Alteração solicitada"
+    );
+    onUpdated({ ...post, approval_status: targetStatus, client_comment: targetComment });
   };
 
   const isVideo = isVideoUrl(post.media || "");
