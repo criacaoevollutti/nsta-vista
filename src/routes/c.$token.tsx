@@ -9,6 +9,7 @@ import { useLiveProfile } from "@/hooks/use-live-profile";
 
 import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
+import { CarouselMedia } from "@/components/CarouselMedia";
 
 
 export const Route = createFileRoute("/c/$token")({
