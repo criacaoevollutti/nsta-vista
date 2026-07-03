@@ -379,13 +379,14 @@ function PostPage() {
         </motion.div>
 
 
-        {/* Editable fields */}
+        {/* Fields */}
         <div className="p-5 space-y-4">
           <EditableField
             icon={<Target className="h-4 w-4" />}
             label="Objetivo da postagem"
             value={post.objective}
             onChange={(v) => update(post.id, { objective: v })}
+            readOnly={!canEdit}
           />
           <EditableField
             icon={<MessageSquare className="h-4 w-4" />}
@@ -393,17 +394,19 @@ function PostPage() {
             value={post.caption}
             onChange={(v) => update(post.id, { caption: v })}
             multiline
+            readOnly={!canEdit}
           />
-          <EditableField
-            icon={<Sparkles className="h-4 w-4" />}
-            label="Observações internas"
-            value={post.notes}
-            placeholder="Notas visíveis apenas para a equipe"
-            onChange={(v) => update(post.id, { notes: v })}
-            multiline
-          />
-
-
+          {canEdit || post.notes ? (
+            <EditableField
+              icon={<Sparkles className="h-4 w-4" />}
+              label="Observações internas"
+              value={post.notes}
+              placeholder="Notas visíveis apenas para a equipe"
+              onChange={(v) => update(post.id, { notes: v })}
+              multiline
+              readOnly={!canEdit}
+            />
+          ) : null}
 
           <div className="grid grid-cols-2 gap-3">
             <MetaField
@@ -412,6 +415,7 @@ function PostPage() {
               type="date"
               value={post.date}
               onChange={(v) => update(post.id, { date: v })}
+              readOnly={!canEdit}
             />
             <MetaField
               icon={<CalendarClock className="h-4 w-4" />}
@@ -419,53 +423,58 @@ function PostPage() {
               type="time"
               value={post.time}
               onChange={(v) => update(post.id, { time: v })}
+              readOnly={!canEdit}
             />
           </div>
 
-          {/* Type picker */}
-          <div>
-            <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 font-medium">
-              Tipo
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(["image", "carousel", "video", "reel", "story"] as PostType[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => update(post.id, { type: t })}
-                  className={`h-8 px-3 rounded-full text-[12px] font-medium border transition active:scale-95 ${
-                    post.type === t
-                      ? "bg-foreground text-primary-foreground border-transparent"
-                      : "bg-surface border-hairline text-foreground hover:bg-surface-2"
-                  }`}
-                >
-                  {TYPE_LABEL[t]}
-                </button>
-              ))}
-            </div>
-          </div>
+          {canEdit ? (
+            <>
+              {/* Type picker */}
+              <div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 font-medium">
+                  Tipo
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(["image", "carousel", "video", "reel", "story"] as PostType[]).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => update(post.id, { type: t })}
+                      className={`h-8 px-3 rounded-full text-[12px] font-medium border transition active:scale-95 ${
+                        post.type === t
+                          ? "bg-foreground text-primary-foreground border-transparent"
+                          : "bg-surface border-hairline text-foreground hover:bg-surface-2"
+                      }`}
+                    >
+                      {TYPE_LABEL[t]}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {/* Secondary actions */}
-          <div className="grid grid-cols-3 gap-2 pt-2">
-            <SecondaryAction
-              icon={<MoveHorizontal className="h-4 w-4" />}
-              label="Mover"
-              onClick={() => navigate({ to: "/" })}
-            />
-            <SecondaryAction
-              icon={<Copy className="h-4 w-4" />}
-              label="Duplicar"
-              onClick={() => duplicate(post.id)}
-            />
-            <SecondaryAction
-              icon={<Trash2 className="h-4 w-4" />}
-              label="Excluir"
-              danger
-              onClick={() => {
-                remove(post.id);
-                navigate({ to: "/" });
-              }}
-            />
-          </div>
+              {/* Secondary actions */}
+              <div className="grid grid-cols-3 gap-2 pt-2">
+                <SecondaryAction
+                  icon={<MoveHorizontal className="h-4 w-4" />}
+                  label="Mover"
+                  onClick={() => navigate({ to: "/" })}
+                />
+                <SecondaryAction
+                  icon={<Copy className="h-4 w-4" />}
+                  label="Duplicar"
+                  onClick={() => duplicate(post.id)}
+                />
+                <SecondaryAction
+                  icon={<Trash2 className="h-4 w-4" />}
+                  label="Excluir"
+                  danger
+                  onClick={() => {
+                    remove(post.id);
+                    navigate({ to: "/" });
+                  }}
+                />
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
 
