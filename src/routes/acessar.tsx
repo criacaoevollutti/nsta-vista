@@ -717,7 +717,7 @@ function AdminPostEditor({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const fileRef2Unused = null;
+  
 
   const fileRef = useRef<HTMLInputElement>(null);
 
