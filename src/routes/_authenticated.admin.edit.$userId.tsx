@@ -87,7 +87,7 @@ function AdminEditPage() {
           Modo admin — editando feed de @{handle}
         </div>
         <ProfileHeader approvedCount={approved} total={shown} editable />
-        <Highlights />
+        <Highlights scopeId={targetId} />
         <div className="grid grid-cols-3 border-b border-hairline">
           <TabButton icon={<Grid3x3 className="h-[18px] w-[18px]" />} active />
           <TabButton icon={<PlaySquare className="h-[18px] w-[18px]" />} />
