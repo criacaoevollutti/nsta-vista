@@ -35,6 +35,7 @@ type SharedPost = {
   position: number;
   approval_status: "pending" | "approved" | "changes_requested";
   client_comment: string;
+  carousel_images: string[];
 };
 
 type SharedProfile = {
@@ -711,13 +712,16 @@ function AdminPostEditor({
     type: post.type,
     media: post.media,
     thumb: post.thumb,
+    carousel_images: Array.isArray(post.carousel_images) ? post.carousel_images : [],
   });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingExtra, setUploadingExtra] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+
 
   const fileRef = useRef<HTMLInputElement>(null);
+  const extraRef = useRef<HTMLInputElement>(null);
 
 
 
