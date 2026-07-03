@@ -147,6 +147,15 @@ function GridCell({ post, index }: { post: Post; index: number }) {
     >
       <FeedCover post={post} />
 
+      {/* Play overlay for video/reel */}
+      {post.type === "reel" || post.type === "video" ? (
+        <div className="absolute inset-0 grid place-items-center pointer-events-none">
+          <div className="h-9 w-9 rounded-full bg-white/25 backdrop-blur-sm grid place-items-center">
+            <Play className="h-4 w-4 text-white" fill="white" />
+          </div>
+        </div>
+      ) : null}
+
       {/* Type icon top-right */}
       {TYPE_ICON[post.type] ? (
         <div className="absolute top-1.5 right-1.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
