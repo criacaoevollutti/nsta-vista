@@ -438,7 +438,13 @@ function ClientFeed({
         </div>
 
 
-        <Highlights scopeId={prof.id} readOnly={!isAdmin} />
+        <Highlights
+          scopeId={prof.id}
+          readOnly={!isAdmin}
+          initialNames={(prof.highlight_names as Record<string, string> | undefined) ?? {}}
+          initialCovers={(prof.highlight_covers as Record<string, string> | undefined) ?? {}}
+          adminPin={adminPin ?? undefined}
+        />
 
         <div className="px-4 py-3 text-xs text-muted-foreground border-b border-hairline">
           {approvedCount} de {posts.length} aprovados
