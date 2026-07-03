@@ -3,47 +3,39 @@ import { useEffect, useRef, useState } from "react";
 import { highlights } from "@/lib/mock-data";
 import { EditableText } from "@/components/EditableText";
 
-const NAMES_KEY = "highlight-names";
+const namesKey = (scope: string) => `highlight-names:${scope}`;
+const coversKey = (scope: string) => `highlight-covers:${scope}`;
 
-function loadNames(): Record<string, string> {
+function loadJSON(key: string): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
-    return JSON.parse(window.localStorage.getItem(NAMES_KEY) || "{}");
+    return JSON.parse(window.localStorage.getItem(key) || "{}");
   } catch {
     return {};
   }
 }
 
-const STORAGE_KEY = "highlight-covers";
-
-function loadOverrides(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-export function Highlights() {
+export function Highlights({ scopeId }: { scopeId?: string }) {
+  const scope = scopeId || "default";
   const [covers, setCovers] = useState<Record<string, string>>({});
   const [names, setNames] = useState<Record<string, string>>({});
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
-    setCovers(loadOverrides());
-    setNames(loadNames());
-  }, []);
+    setCovers(loadJSON(coversKey(scope)));
+    setNames(loadJSON(namesKey(scope)));
+  }, [scope]);
 
   const renameHighlight = (id: string, next: string) => {
     const updated = { ...names, [id]: next };
     setNames(updated);
     try {
-      window.localStorage.setItem(NAMES_KEY, JSON.stringify(updated));
+      window.localStorage.setItem(namesKey(scope), JSON.stringify(updated));
     } catch {
       /* ignore quota */
     }
   };
+
 
   const pick = (id: string, file: File) => {
     const reader = new FileReader();
