@@ -10,6 +10,9 @@ import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
 import { EditableText } from "@/components/EditableText";
 import { useLiveProfile } from "@/hooks/use-live-profile";
+import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 
 export const Route = createFileRoute("/acessar")({
@@ -450,43 +453,42 @@ function ClientFeed({
           {approvedCount} de {posts.length} aprovados
         </div>
 
-        <div className="grid grid-cols-3 gap-[2px] bg-background">
-          {posts.slice(0, 12).map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setActive(p)}
-              className="relative aspect-[4/5] overflow-hidden"
-            >
-              <MediaThumb src={p.thumb} alt={p.title} className="h-full w-full object-cover" showPlayIcon isVideo={p.type === "video" || p.type === "reel" || p.type === "story"} />
-              <StatusPill status={p.approval_status} />
-            </button>
-          ))}
-          {isAdmin
-            ? Array.from({ length: Math.max(0, 12 - posts.length) }).map((_, i) => (
-                <button
-                  key={`empty-${i}`}
-                  disabled={creatingSlot}
-                  onClick={async () => {
-                    setCreatingSlot(true);
-                    const { data, error } = await supabase.rpc("admin_create_post_for", {
-                      _admin_pin: adminPin!,
-                      _target_id: prof.id,
-                      _position: posts.length + i,
-                    });
-                    setCreatingSlot(false);
-                    if (error || !data) { toast.error("Não foi possível criar postagem"); return; }
-                    const np = data as unknown as SharedPost;
-                    setPosts((prev) => [...prev, np]);
-                    setActive(np);
-                  }}
-                  className="relative aspect-[4/5] overflow-hidden bg-surface-2 border border-dashed border-border/60 grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-foreground transition-colors disabled:opacity-50"
-                  aria-label="Adicionar postagem"
-                >
-                  {creatingSlot ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-6 w-6" />}
-                </button>
-              ))
-            : null}
-        </div>
+        {isAdmin ? (
+          <AdminSortableGrid
+            posts={posts}
+            adminPin={adminPin!}
+            targetId={prof.id}
+            onReorder={setPosts}
+            onOpen={setActive}
+            creatingSlot={creatingSlot}
+            onCreateSlot={async (i) => {
+              setCreatingSlot(true);
+              const { data, error } = await supabase.rpc("admin_create_post_for", {
+                _admin_pin: adminPin!,
+                _target_id: prof.id,
+                _position: posts.length + i,
+              });
+              setCreatingSlot(false);
+              if (error || !data) { toast.error("Não foi possível criar postagem"); return; }
+              const np = data as unknown as SharedPost;
+              setPosts((prev) => [...prev, np]);
+              setActive(np);
+            }}
+          />
+        ) : (
+          <div className="grid grid-cols-3 gap-[2px] bg-background">
+            {posts.slice(0, 12).map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setActive(p)}
+                className="relative aspect-[4/5] overflow-hidden"
+              >
+                <MediaThumb src={p.thumb} alt={p.title} className="h-full w-full object-cover" showPlayIcon isVideo={p.type === "video" || p.type === "reel" || p.type === "story"} />
+                <StatusPill status={p.approval_status} />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {active ? (
@@ -698,6 +700,91 @@ function PostReviewSheet({
     </div>
   );
 }
+
+function AdminSortableGrid({
+  posts,
+  adminPin,
+  targetId,
+  onReorder,
+  onOpen,
+  creatingSlot,
+  onCreateSlot,
+}: {
+  posts: SharedPost[];
+  adminPin: string;
+  targetId: string;
+  onReorder: React.Dispatch<React.SetStateAction<SharedPost[]>>;
+  onOpen: (p: SharedPost) => void;
+  creatingSlot: boolean;
+  onCreateSlot: (i: number) => void;
+}) {
+  const visible = posts.slice(0, 12);
+  const empty = Math.max(0, 12 - visible.length);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+  );
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    if (!e.over || e.active.id === e.over.id) return;
+    const from = visible.findIndex((p) => p.id === String(e.active.id));
+    const to = visible.findIndex((p) => p.id === String(e.over!.id));
+    if (from < 0 || to < 0) return;
+    const next = visible.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onReorder(next);
+    void supabase
+      .rpc("admin_reorder_posts", { _admin_pin: adminPin, _target_id: targetId, _post_ids: next.map((p) => p.id) })
+      .then(({ error }) => { if (error) toast.error("Falha ao salvar ordem"); });
+  };
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={visible.map((p) => p.id)} strategy={rectSortingStrategy}>
+        <div className="grid grid-cols-3 gap-[2px] bg-background">
+          {visible.map((p) => (
+            <SortableAdminCell key={p.id} post={p} onOpen={onOpen} />
+          ))}
+          {Array.from({ length: empty }).map((_, i) => (
+            <button
+              key={`empty-${i}`}
+              disabled={creatingSlot}
+              onClick={() => onCreateSlot(i)}
+              className="relative aspect-[4/5] overflow-hidden bg-surface-2 border border-dashed border-border/60 grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-foreground transition-colors disabled:opacity-50"
+              aria-label="Adicionar postagem"
+            >
+              {creatingSlot ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-6 w-6" />}
+            </button>
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+function SortableAdminCell({ post, onOpen }: { post: SharedPost; onOpen: (p: SharedPost) => void }) {
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({ id: post.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 20 : undefined,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={() => { if (!isDragging) onOpen(post); }}
+      className={`relative aspect-[4/5] overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing ${isDragging ? "shadow-[var(--shadow-lg)] rounded-md" : ""}`}
+    >
+      <MediaThumb src={post.thumb} alt={post.title} className="h-full w-full object-cover" showPlayIcon isVideo={post.type === "video" || post.type === "reel" || post.type === "story"} />
+      <StatusPill status={post.approval_status} />
+    </div>
+  );
+}
+
 
 function AdminPostEditor({
   post,

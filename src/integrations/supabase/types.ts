@@ -225,6 +225,10 @@ export type Database = {
         Args: { _admin_pin: string; _target_id: string }
         Returns: boolean
       }
+      admin_reorder_posts: {
+        Args: { _admin_pin: string; _post_ids: string[]; _target_id: string }
+        Returns: boolean
+      }
       admin_update_highlights: {
         Args: {
           _admin_pin: string
