@@ -588,12 +588,14 @@ function MetaField({
   value,
   onChange,
   type,
+  readOnly,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   onChange: (v: string) => void;
   type: "date" | "time";
+  readOnly?: boolean;
 }) {
   return (
     <div className="rounded-2xl bg-surface border border-hairline p-3.5">
@@ -605,7 +607,8 @@ function MetaField({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-transparent text-[14px] font-medium outline-none tabular-nums"
+        readOnly={readOnly}
+        className="w-full bg-transparent text-[14px] font-medium outline-none tabular-nums read-only:cursor-default"
       />
     </div>
   );
