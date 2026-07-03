@@ -717,10 +717,8 @@ function AdminPostEditor({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(false);
-  const [supportText, setSupportText] = useState(post.client_comment ?? "");
-  const [sendingSupport, setSendingSupport] = useState(false);
-  const [justApproved, setJustApproved] = useState(false);
+  const fileRef2Unused = null;
+
   const fileRef = useRef<HTMLInputElement>(null);
 
 
