@@ -98,6 +98,12 @@ function PostPage() {
   const setStatus = usePosts((s) => s.setStatus);
   const duplicate = usePosts((s) => s.duplicate);
   const remove = usePosts((s) => s.remove);
+  const [uid, setUid] = useState<string | undefined>(undefined);
+  useState(() => {
+    void supabase.auth.getUser().then(({ data }) => setUid(data.user?.id));
+  });
+  const { isAdmin } = useIsAdmin(uid);
+  const canEdit = isAdmin;
 
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportText, setSupportText] = useState("");
