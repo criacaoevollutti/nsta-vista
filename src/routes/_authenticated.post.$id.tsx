@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -24,6 +24,7 @@ import {
 import { AppFrame } from "@/components/AppFrame";
 import { usePosts } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import { STATUS_META, TYPE_LABEL, type PostType } from "@/lib/types";
 
 const MAX_MB = 500;
@@ -97,6 +98,12 @@ function PostPage() {
   const setStatus = usePosts((s) => s.setStatus);
   const duplicate = usePosts((s) => s.duplicate);
   const remove = usePosts((s) => s.remove);
+  const [uid, setUid] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setUid(data.user?.id));
+  }, []);
+  const { isAdmin } = useIsAdmin(uid);
+  const canEdit = isAdmin;
 
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportText, setSupportText] = useState("");
@@ -267,13 +274,17 @@ function PostPage() {
               {status.label}
             </div>
           </div>
-          <button
-            onClick={() => duplicate(post.id)}
-            className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2 active:scale-95 transition"
-            title="Duplicar"
-          >
-            <Copy className="h-[18px] w-[18px]" />
-          </button>
+          {canEdit ? (
+            <button
+              onClick={() => duplicate(post.id)}
+              className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2 active:scale-95 transition"
+              title="Duplicar"
+            >
+              <Copy className="h-[18px] w-[18px]" />
+            </button>
+          ) : (
+            <div className="h-9 w-9" />
+          )}
         </div>
       </div>
 
@@ -310,67 +321,72 @@ function PostPage() {
             </div>
           ) : null}
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            className="hidden"
-            onChange={handleUpload}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="absolute bottom-3 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando…
-              </>
-            ) : (
-              <>
-                <Pencil className="h-3.5 w-3.5" /> Trocar mídia
-              </>
-            )}
-          </button>
-          {isVideoUrl(post.media) ? (
+          {canEdit ? (
             <>
               <input
-                ref={coverInputRef}
+                ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 className="hidden"
-                onChange={handleCoverUpload}
+                onChange={handleUpload}
               />
               <button
-                onClick={() => coverInputRef.current?.click()}
-                disabled={uploadingCover}
-                className="absolute bottom-14 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-3 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
               >
-                {uploadingCover ? (
+                {uploading ? (
                   <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando capa…
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando…
                   </>
                 ) : (
                   <>
-                    <Images className="h-3.5 w-3.5" /> Trocar capa
+                    <Pencil className="h-3.5 w-3.5" /> Trocar mídia
                   </>
                 )}
               </button>
+              {isVideoUrl(post.media) ? (
+                <>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCoverUpload}
+                  />
+                  <button
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={uploadingCover}
+                    className="absolute bottom-14 right-3 h-9 px-3 rounded-full glass text-[12px] font-medium flex items-center gap-1.5 shadow-[var(--shadow-sm)] active:scale-95 transition disabled:opacity-70"
+                  >
+                    {uploadingCover ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando capa…
+                      </>
+                    ) : (
+                      <>
+                        <Images className="h-3.5 w-3.5" /> Trocar capa
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : null}
+              <div className="absolute bottom-3 left-3 h-7 px-2 rounded-full bg-black/45 text-white text-[10px] font-medium flex items-center gap-1">
+                <Film className="h-3 w-3" /> Máx {MAX_MB}MB · imagem ou vídeo
+              </div>
             </>
           ) : null}
-          <div className="absolute bottom-3 left-3 h-7 px-2 rounded-full bg-black/45 text-white text-[10px] font-medium flex items-center gap-1">
-            <Film className="h-3 w-3" /> Máx {MAX_MB}MB · imagem ou vídeo
-          </div>
         </motion.div>
 
 
-        {/* Editable fields */}
+        {/* Fields */}
         <div className="p-5 space-y-4">
           <EditableField
             icon={<Target className="h-4 w-4" />}
             label="Objetivo da postagem"
             value={post.objective}
             onChange={(v) => update(post.id, { objective: v })}
+            readOnly={!canEdit}
           />
           <EditableField
             icon={<MessageSquare className="h-4 w-4" />}
@@ -378,17 +394,19 @@ function PostPage() {
             value={post.caption}
             onChange={(v) => update(post.id, { caption: v })}
             multiline
+            readOnly={!canEdit}
           />
-          <EditableField
-            icon={<Sparkles className="h-4 w-4" />}
-            label="Observações internas"
-            value={post.notes}
-            placeholder="Notas visíveis apenas para a equipe"
-            onChange={(v) => update(post.id, { notes: v })}
-            multiline
-          />
-
-
+          {canEdit || post.notes ? (
+            <EditableField
+              icon={<Sparkles className="h-4 w-4" />}
+              label="Observações internas"
+              value={post.notes}
+              placeholder="Notas visíveis apenas para a equipe"
+              onChange={(v) => update(post.id, { notes: v })}
+              multiline
+              readOnly={!canEdit}
+            />
+          ) : null}
 
           <div className="grid grid-cols-2 gap-3">
             <MetaField
@@ -397,6 +415,7 @@ function PostPage() {
               type="date"
               value={post.date}
               onChange={(v) => update(post.id, { date: v })}
+              readOnly={!canEdit}
             />
             <MetaField
               icon={<CalendarClock className="h-4 w-4" />}
@@ -404,53 +423,58 @@ function PostPage() {
               type="time"
               value={post.time}
               onChange={(v) => update(post.id, { time: v })}
+              readOnly={!canEdit}
             />
           </div>
 
-          {/* Type picker */}
-          <div>
-            <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 font-medium">
-              Tipo
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(["image", "carousel", "video", "reel", "story"] as PostType[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => update(post.id, { type: t })}
-                  className={`h-8 px-3 rounded-full text-[12px] font-medium border transition active:scale-95 ${
-                    post.type === t
-                      ? "bg-foreground text-primary-foreground border-transparent"
-                      : "bg-surface border-hairline text-foreground hover:bg-surface-2"
-                  }`}
-                >
-                  {TYPE_LABEL[t]}
-                </button>
-              ))}
-            </div>
-          </div>
+          {canEdit ? (
+            <>
+              {/* Type picker */}
+              <div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 font-medium">
+                  Tipo
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(["image", "carousel", "video", "reel", "story"] as PostType[]).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => update(post.id, { type: t })}
+                      className={`h-8 px-3 rounded-full text-[12px] font-medium border transition active:scale-95 ${
+                        post.type === t
+                          ? "bg-foreground text-primary-foreground border-transparent"
+                          : "bg-surface border-hairline text-foreground hover:bg-surface-2"
+                      }`}
+                    >
+                      {TYPE_LABEL[t]}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {/* Secondary actions */}
-          <div className="grid grid-cols-3 gap-2 pt-2">
-            <SecondaryAction
-              icon={<MoveHorizontal className="h-4 w-4" />}
-              label="Mover"
-              onClick={() => navigate({ to: "/" })}
-            />
-            <SecondaryAction
-              icon={<Copy className="h-4 w-4" />}
-              label="Duplicar"
-              onClick={() => duplicate(post.id)}
-            />
-            <SecondaryAction
-              icon={<Trash2 className="h-4 w-4" />}
-              label="Excluir"
-              danger
-              onClick={() => {
-                remove(post.id);
-                navigate({ to: "/" });
-              }}
-            />
-          </div>
+              {/* Secondary actions */}
+              <div className="grid grid-cols-3 gap-2 pt-2">
+                <SecondaryAction
+                  icon={<MoveHorizontal className="h-4 w-4" />}
+                  label="Mover"
+                  onClick={() => navigate({ to: "/" })}
+                />
+                <SecondaryAction
+                  icon={<Copy className="h-4 w-4" />}
+                  label="Duplicar"
+                  onClick={() => duplicate(post.id)}
+                />
+                <SecondaryAction
+                  icon={<Trash2 className="h-4 w-4" />}
+                  label="Excluir"
+                  danger
+                  onClick={() => {
+                    remove(post.id);
+                    navigate({ to: "/" });
+                  }}
+                />
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
 
@@ -520,6 +544,7 @@ function EditableField({
   onChange,
   multiline,
   placeholder,
+  readOnly,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -527,6 +552,7 @@ function EditableField({
   onChange: (v: string) => void;
   multiline?: boolean;
   placeholder?: string;
+  readOnly?: boolean;
 }) {
   return (
     <div className="rounded-2xl bg-surface border border-hairline p-3.5 focus-within:border-brand-purple/50 transition">
@@ -540,14 +566,16 @@ function EditableField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
-          className="w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60"
+          readOnly={readOnly}
+          className="w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 read-only:cursor-default"
         />
       ) : (
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-transparent text-[14px] font-medium outline-none placeholder:text-muted-foreground/60"
+          readOnly={readOnly}
+          className="w-full bg-transparent text-[14px] font-medium outline-none placeholder:text-muted-foreground/60 read-only:cursor-default"
         />
       )}
     </div>
@@ -560,12 +588,14 @@ function MetaField({
   value,
   onChange,
   type,
+  readOnly,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   onChange: (v: string) => void;
   type: "date" | "time";
+  readOnly?: boolean;
 }) {
   return (
     <div className="rounded-2xl bg-surface border border-hairline p-3.5">
@@ -577,7 +607,8 @@ function MetaField({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-transparent text-[14px] font-medium outline-none tabular-nums"
+        readOnly={readOnly}
+        className="w-full bg-transparent text-[14px] font-medium outline-none tabular-nums read-only:cursor-default"
       />
     </div>
   );
