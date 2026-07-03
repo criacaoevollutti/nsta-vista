@@ -130,6 +130,8 @@ export type Database = {
           followers: string
           following: number
           handle: string
+          highlight_covers: Json
+          highlight_names: Json
           id: string
           is_admin: boolean
           location: string
@@ -148,6 +150,8 @@ export type Database = {
           followers?: string
           following?: number
           handle?: string
+          highlight_covers?: Json
+          highlight_names?: Json
           id?: string
           is_admin?: boolean
           location?: string
@@ -166,6 +170,8 @@ export type Database = {
           followers?: string
           following?: number
           handle?: string
+          highlight_covers?: Json
+          highlight_names?: Json
           id?: string
           is_admin?: boolean
           location?: string
@@ -217,6 +223,15 @@ export type Database = {
       }
       admin_delete_profile: {
         Args: { _admin_pin: string; _target_id: string }
+        Returns: boolean
+      }
+      admin_update_highlights: {
+        Args: {
+          _admin_pin: string
+          _covers: Json
+          _names: Json
+          _target_id: string
+        }
         Returns: boolean
       }
       admin_update_post: {
