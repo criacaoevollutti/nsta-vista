@@ -762,6 +762,30 @@ function AdminPostEditor({
     }
   };
 
+  const uploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem"); return; }
+    if (file.size > 50 * 1024 * 1024) { toast.error("Imagem maior que 50MB"); return; }
+    setUploadingCover(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `pin/${post.id}-cover-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("media").upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage.from("media").createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (sErr || !signed) throw sErr ?? new Error("sign fail");
+      setForm((f) => ({ ...f, thumb: signed.signedUrl }));
+      toast.success("Capa atualizada");
+    } catch (err) {
+      console.error(err);
+      toast.error("Falha no envio da capa");
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
   const uploadExtra = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
