@@ -15,7 +15,7 @@ function loadJSON(key: string): Record<string, string> {
   }
 }
 
-export function Highlights({ scopeId }: { scopeId?: string }) {
+export function Highlights({ scopeId, readOnly = false }: { scopeId?: string; readOnly?: boolean }) {
   const scope = scopeId || "default";
   const [covers, setCovers] = useState<Record<string, string>>({});
   const [names, setNames] = useState<Record<string, string>>({});
