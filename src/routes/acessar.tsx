@@ -333,7 +333,10 @@ function ClientFeed({
         title="Grupo Evollutti"
         subtitle="Publievo"
         right={
-          <button onClick={onExit} className="text-xs text-muted-foreground px-3 h-8 rounded-full border border-hairline">
+          <button
+            onClick={onExit}
+            className="text-xs font-medium text-white px-4 h-9 rounded-full bg-brand-orange hover:bg-brand-orange-soft transition-colors mr-1"
+          >
             {isAdmin ? "Voltar" : "Sair"}
           </button>
         }
