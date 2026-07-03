@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
 import { EditableText } from "@/components/EditableText";
+import { useLiveProfile } from "@/hooks/use-live-profile";
+
 
 export const Route = createFileRoute("/acessar")({
   ssr: false,
