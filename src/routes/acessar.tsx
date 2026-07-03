@@ -724,11 +724,13 @@ function AdminPostEditor({
   });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingExtra, setUploadingExtra] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
 
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const extraRef = useRef<HTMLInputElement>(null);
 
 
