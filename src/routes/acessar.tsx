@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
-import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus, X, ImagePlus } from "lucide-react";
+import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus, X, ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -744,7 +744,18 @@ function AdminSortableGrid({
       <SortableContext items={visible.map((p) => p.id)} strategy={rectSortingStrategy}>
         <div className="grid grid-cols-3 gap-[2px] bg-background">
           {visible.map((p) => (
-            <SortableAdminCell key={p.id} post={p} onOpen={onOpen} />
+            <SortableAdminCell
+              key={p.id}
+              post={p}
+              onOpen={onOpen}
+              onDelete={async () => {
+                if (!window.confirm("Excluir esta postagem?")) return;
+                const { data, error } = await supabase.rpc("admin_delete_post", { _admin_pin: adminPin, _post_id: p.id });
+                if (error || !data) { toast.error("Falha ao excluir"); return; }
+                onReorder((prev) => prev.filter((x) => x.id !== p.id));
+                toast.success("Postagem excluída");
+              }}
+            />
           ))}
           {Array.from({ length: empty }).map((_, i) => (
             <button
@@ -763,7 +774,7 @@ function AdminSortableGrid({
   );
 }
 
-function SortableAdminCell({ post, onOpen }: { post: SharedPost; onOpen: (p: SharedPost) => void }) {
+function SortableAdminCell({ post, onOpen, onDelete }: { post: SharedPost; onOpen: (p: SharedPost) => void; onDelete: () => void }) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({ id: post.id });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -781,6 +792,15 @@ function SortableAdminCell({ post, onOpen }: { post: SharedPost; onOpen: (p: Sha
     >
       <MediaThumb src={post.thumb} alt={post.title} className="h-full w-full object-cover" showPlayIcon isVideo={post.type === "video" || post.type === "reel" || post.type === "story"} />
       <StatusPill status={post.approval_status} />
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="absolute top-1.5 right-1.5 h-7 w-7 grid place-items-center rounded-full bg-black/60 text-white hover:bg-red-600 transition-colors"
+        aria-label="Excluir postagem"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 }
