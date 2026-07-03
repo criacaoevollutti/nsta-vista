@@ -566,14 +566,16 @@ function EditableField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
-          className="w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60"
+          readOnly={readOnly}
+          className="w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 read-only:cursor-default"
         />
       ) : (
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-transparent text-[14px] font-medium outline-none placeholder:text-muted-foreground/60"
+          readOnly={readOnly}
+          className="w-full bg-transparent text-[14px] font-medium outline-none placeholder:text-muted-foreground/60 read-only:cursor-default"
         />
       )}
     </div>
