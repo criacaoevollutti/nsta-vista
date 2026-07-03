@@ -274,13 +274,17 @@ function PostPage() {
               {status.label}
             </div>
           </div>
-          <button
-            onClick={() => duplicate(post.id)}
-            className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2 active:scale-95 transition"
-            title="Duplicar"
-          >
-            <Copy className="h-[18px] w-[18px]" />
-          </button>
+          {canEdit ? (
+            <button
+              onClick={() => duplicate(post.id)}
+              className="h-9 w-9 grid place-items-center rounded-full hover:bg-surface-2 active:scale-95 transition"
+              title="Duplicar"
+            >
+              <Copy className="h-[18px] w-[18px]" />
+            </button>
+          ) : (
+            <div className="h-9 w-9" />
+          )}
         </div>
       </div>
 
