@@ -744,7 +744,18 @@ function AdminSortableGrid({
       <SortableContext items={visible.map((p) => p.id)} strategy={rectSortingStrategy}>
         <div className="grid grid-cols-3 gap-[2px] bg-background">
           {visible.map((p) => (
-            <SortableAdminCell key={p.id} post={p} onOpen={onOpen} />
+            <SortableAdminCell
+              key={p.id}
+              post={p}
+              onOpen={onOpen}
+              onDelete={async () => {
+                if (!window.confirm("Excluir esta postagem?")) return;
+                const { data, error } = await supabase.rpc("admin_delete_post", { _admin_pin: adminPin, _post_id: p.id });
+                if (error || !data) { toast.error("Falha ao excluir"); return; }
+                onReorder((prev) => prev.filter((x) => x.id !== p.id));
+                toast.success("Postagem excluída");
+              }}
+            />
           ))}
           {Array.from({ length: empty }).map((_, i) => (
             <button
