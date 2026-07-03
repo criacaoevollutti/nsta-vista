@@ -119,7 +119,7 @@ function AdminPage() {
   };
 
   const removeCompany = async (row: Row) => {
-    if (!adminPin) return toast.error("PIN de admin indisponível");
+    if (!adminPin) { toast.error("PIN de admin indisponível"); return; }
     if (!window.confirm(`Excluir "${row.name}" e todos os posts? Ação irreversível.`)) return;
     try {
       const { data, error } = await supabase.rpc("admin_delete_profile", {
