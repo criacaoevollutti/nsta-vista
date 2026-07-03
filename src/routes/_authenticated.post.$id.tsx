@@ -498,11 +498,12 @@ function PostPage() {
         </button>
         <button
           onClick={() => setSupportOpen(true)}
-          className="w-full h-11 rounded-2xl font-medium text-[14px] flex items-center justify-center gap-2 bg-brand-orange-soft/40 text-brand-orange border border-brand-orange-soft/70 active:scale-[0.98] transition"
+          className="w-full h-12 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 bg-brand-orange text-white shadow-[0_10px_30px_-12px_oklch(0.72_0.18_50/0.55)] active:scale-[0.98] transition"
         >
           <MessageSquare className="h-4 w-4" />
-          Solicitar suporte
+          Solicitar suporte urgente
         </button>
+
       </div>
 
       {/* Approved flash overlay */}
