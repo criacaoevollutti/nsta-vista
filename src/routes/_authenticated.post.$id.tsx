@@ -486,15 +486,15 @@ function PostPage() {
       <div className="absolute bottom-0 inset-x-0 glass border-t border-hairline p-4 pb-6 space-y-2">
         <button
           onClick={approve}
-          disabled={post.status === "approved"}
+          disabled={post.approvalStatus === "approved"}
           className={`w-full h-12 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 transition active:scale-[0.98] ${
-            post.status === "approved"
+            post.approvalStatus === "approved"
               ? "bg-success-soft text-status-approved"
               : "bg-status-approved text-white shadow-[0_10px_30px_-12px_oklch(0.68_0.17_150/0.55)]"
           }`}
         >
           <Check className="h-5 w-5" strokeWidth={3} />
-          {post.status === "approved" ? "Aprovado" : "Aprovar publicação"}
+          {post.approvalStatus === "approved" ? "Aprovado" : "Aprovar publicação"}
         </button>
         <button
           onClick={() => setSupportOpen(true)}
