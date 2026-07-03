@@ -131,7 +131,7 @@ function SharedView() {
               onClick={() => setActive(p)}
               className="relative aspect-[4/5] overflow-hidden"
             >
-              <MediaThumb src={p.thumb} alt={p.title} className="h-full w-full object-cover" showPlayIcon />
+              <MediaThumb src={p.thumb} alt={p.title} className="h-full w-full object-cover" showPlayIcon isVideo={p.type === "video" || p.type === "reel" || p.type === "story"} />
               <StatusPill status={p.approval_status} />
             </button>
           ))}
