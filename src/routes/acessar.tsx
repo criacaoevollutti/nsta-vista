@@ -701,6 +701,91 @@ function PostReviewSheet({
   );
 }
 
+function AdminSortableGrid({
+  posts,
+  adminPin,
+  targetId,
+  onReorder,
+  onOpen,
+  creatingSlot,
+  onCreateSlot,
+}: {
+  posts: SharedPost[];
+  adminPin: string;
+  targetId: string;
+  onReorder: React.Dispatch<React.SetStateAction<SharedPost[]>>;
+  onOpen: (p: SharedPost) => void;
+  creatingSlot: boolean;
+  onCreateSlot: (i: number) => void;
+}) {
+  const visible = posts.slice(0, 12);
+  const empty = Math.max(0, 12 - visible.length);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+  );
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    if (!e.over || e.active.id === e.over.id) return;
+    const from = visible.findIndex((p) => p.id === String(e.active.id));
+    const to = visible.findIndex((p) => p.id === String(e.over!.id));
+    if (from < 0 || to < 0) return;
+    const next = visible.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onReorder(next);
+    void supabase
+      .rpc("admin_reorder_posts", { _admin_pin: adminPin, _target_id: targetId, _post_ids: next.map((p) => p.id) })
+      .then(({ error }) => { if (error) toast.error("Falha ao salvar ordem"); });
+  };
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={visible.map((p) => p.id)} strategy={rectSortingStrategy}>
+        <div className="grid grid-cols-3 gap-[2px] bg-background">
+          {visible.map((p) => (
+            <SortableAdminCell key={p.id} post={p} onOpen={onOpen} />
+          ))}
+          {Array.from({ length: empty }).map((_, i) => (
+            <button
+              key={`empty-${i}`}
+              disabled={creatingSlot}
+              onClick={() => onCreateSlot(i)}
+              className="relative aspect-[4/5] overflow-hidden bg-surface-2 border border-dashed border-border/60 grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-foreground transition-colors disabled:opacity-50"
+              aria-label="Adicionar postagem"
+            >
+              {creatingSlot ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-6 w-6" />}
+            </button>
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+function SortableAdminCell({ post, onOpen }: { post: SharedPost; onOpen: (p: SharedPost) => void }) {
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({ id: post.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 20 : undefined,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={() => { if (!isDragging) onOpen(post); }}
+      className={`relative aspect-[4/5] overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing ${isDragging ? "shadow-[var(--shadow-lg)] rounded-md" : ""}`}
+    >
+      <MediaThumb src={post.thumb} alt={post.title} className="h-full w-full object-cover" showPlayIcon isVideo={post.type === "video" || post.type === "reel" || post.type === "story"} />
+      <StatusPill status={post.approval_status} />
+    </div>
+  );
+}
+
+
 function AdminPostEditor({
   post,
   adminPin,
