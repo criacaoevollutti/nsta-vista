@@ -273,15 +273,24 @@ function AdminPage() {
         <Modal onClose={() => setShowForm(false)}>
           <CreateForm
             onCreate={async (payload) => {
+              if (!adminPin) return toast.error("PIN de admin indisponível");
               try {
-                const res = await createFn({ data: payload });
-                toast.success(`Empresa criada · PIN ${res.pin}`);
+                const { data, error } = await supabase.rpc("admin_create_profile", {
+                  _admin_pin: adminPin,
+                  _name: payload.name,
+                  _handle: payload.handle,
+                });
+                if (error) throw error;
+                const res = data as { pin?: string; access_pin?: string } | null;
+                const pin = res?.access_pin ?? res?.pin ?? "----";
+                toast.success(`Empresa criada · PIN ${pin}`);
                 setShowForm(false);
                 void load();
               } catch (e) {
                 toast.error(e instanceof Error ? e.message : "Falha ao criar");
               }
             }}
+
           />
         </Modal>
       ) : null}
