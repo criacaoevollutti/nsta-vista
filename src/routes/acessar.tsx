@@ -956,7 +956,15 @@ function AdminPostEditor({
 
       <div className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[calc(100dvh-68px)] sm:max-h-[calc(100dvh-100px)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="relative bg-black">
-          {form.media && isVideo ? (
+          {form.type === "carousel" && form.media ? (
+            <CarouselMedia
+              cover={form.thumb || form.media}
+              media={form.media}
+              extras={form.carousel_images ?? []}
+              alt={form.title}
+              ratioClass={ratio}
+            />
+          ) : form.media && isVideo ? (
             <video src={form.media} poster={form.thumb && form.thumb !== form.media ? form.thumb : undefined} controls playsInline preload="metadata" className={`w-full object-contain ${ratio}`} />
           ) : form.media ? (
             <img src={form.media} alt={form.title} className={`w-full object-cover ${ratio}`} />
