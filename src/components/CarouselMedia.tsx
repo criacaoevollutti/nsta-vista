@@ -1,5 +1,6 @@
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isVideoUrl } from "@/lib/utils";
 
 interface CarouselMediaProps {
