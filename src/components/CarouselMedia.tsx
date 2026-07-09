@@ -48,6 +48,22 @@ export function CarouselMedia({ cover, media, extras, alt, ratioClass = "aspect-
       </Carousel>
       {total > 1 ? (
         <>
+          <button
+            type="button"
+            aria-label="Anterior"
+            onClick={() => api?.scrollPrev()}
+            className="absolute top-1/2 left-2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-colors z-10"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            aria-label="Próximo"
+            onClick={() => api?.scrollNext()}
+            className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-colors z-10"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
           <div className="absolute top-3 right-3 h-7 px-2 rounded-full bg-black/50 text-white text-[11px] font-medium flex items-center">
             {index + 1}/{total}
           </div>
