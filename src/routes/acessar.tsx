@@ -8,6 +8,7 @@ import { Highlights } from "@/components/Highlights";
 import { supabase } from "@/integrations/supabase/client";
 import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
+import { CarouselMedia } from "@/components/CarouselMedia";
 import { EditableText } from "@/components/EditableText";
 import { useLiveProfile } from "@/hooks/use-live-profile";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter, type DragEndEvent } from "@dnd-kit/core";
