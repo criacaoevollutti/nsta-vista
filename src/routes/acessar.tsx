@@ -583,7 +583,15 @@ function PostReviewSheet({
 
       <div className="bg-card w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[calc(100dvh-68px)] sm:max-h-[calc(100dvh-100px)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="relative bg-black">
-          {isVideo ? (
+          {post.type === "carousel" && post.media ? (
+            <CarouselMedia
+              cover={post.thumb || post.media}
+              media={post.media}
+              extras={Array.isArray(post.carousel_images) ? post.carousel_images.filter(Boolean) : []}
+              alt={post.title}
+              ratioClass={ratio}
+            />
+          ) : isVideo ? (
             <video src={post.media} controls playsInline preload="metadata" className={`w-full object-contain ${ratio}`} />
           ) : (
             <img src={post.media || post.thumb} alt={post.title} className={`w-full object-cover ${ratio}`} />
