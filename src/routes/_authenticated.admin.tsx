@@ -407,3 +407,96 @@ function CreateForm({
     </form>
   );
 }
+
+function SortableCompanyCard({
+  row,
+  isSelected,
+  canReorder,
+  onHover,
+  onSelect,
+}: {
+  row: Row;
+  isSelected: boolean;
+  canReorder: boolean;
+  onHover: () => void;
+  onSelect: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: row.id,
+    disabled: !canReorder,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+  return (
+    <li ref={setNodeRef} style={style}>
+      <div
+        className={`p-4 rounded-2xl border transition-all relative ${
+          isSelected ? "border-transparent shadow-lg" : "border-slate-200 hover:border-violet-300 bg-white"
+        }`}
+        style={
+          isSelected
+            ? {
+                background: "linear-gradient(135deg,#faf5ff,#fff7ed)",
+                boxShadow: `0 8px 24px -12px ${PURPLE}55`,
+              }
+            : undefined
+        }
+      >
+        {canReorder ? (
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            aria-label="Arrastar para reordenar"
+            className="absolute top-2 right-2 h-7 w-7 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-grab active:cursor-grabbing touch-none"
+            onClick={(e) => e.preventDefault()}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+        ) : null}
+        <Link
+          to="/admin/edit/$userId"
+          params={{ userId: row.id }}
+          preload="intent"
+          onMouseEnter={onHover}
+          className="block w-full text-left"
+        >
+          <div className="flex items-start justify-between gap-2 pr-7">
+            <div className="min-w-0">
+              <div className="font-semibold truncate">{row.name || "Sem nome"}</div>
+              <div className="text-xs text-slate-500 truncate">@{row.handle.replace(/^@+/, "")}</div>
+            </div>
+            <span
+              className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+              style={{ background: "#fff7ed", color: ORANGE }}
+            >
+              {Math.min(row.post_count, 12)}/12
+            </span>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-[10px] uppercase tracking-wider text-slate-400">PIN</div>
+            <div className="font-mono text-lg font-bold tracking-[0.3em]" style={{ color: PURPLE }}>
+              {row.access_pin}
+            </div>
+          </div>
+          <div
+            className="mt-3 w-full h-9 rounded-full text-xs font-medium inline-flex items-center justify-center gap-1.5 text-white"
+            style={{ background: `linear-gradient(135deg, ${PURPLE}, ${ORANGE})` }}
+          >
+            <Pencil className="h-3.5 w-3.5" /> Abrir editor
+          </div>
+        </Link>
+        <button
+          onClick={onSelect}
+          className="mt-2 w-full text-[11px] text-slate-500 hover:text-slate-700"
+        >
+          Ver detalhes
+        </button>
+      </div>
+    </li>
+  );
+}
