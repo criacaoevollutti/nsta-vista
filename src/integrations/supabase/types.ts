@@ -123,6 +123,7 @@ export type Database = {
       profiles: {
         Row: {
           access_pin: string | null
+          approved: boolean
           avatar: string
           bio: string
           category: string
@@ -144,6 +145,7 @@ export type Database = {
         }
         Insert: {
           access_pin?: string | null
+          approved?: boolean
           avatar?: string
           bio?: string
           category?: string
@@ -165,6 +167,7 @@ export type Database = {
         }
         Update: {
           access_pin?: string | null
+          approved?: boolean
           avatar?: string
           bio?: string
           category?: string
@@ -234,6 +237,10 @@ export type Database = {
       }
       admin_reorder_profiles: {
         Args: { _admin_pin: string; _profile_ids: string[] }
+        Returns: boolean
+      }
+      admin_set_profile_approved: {
+        Args: { _admin_pin: string; _approved: boolean; _target_id: string }
         Returns: boolean
       }
       admin_update_highlights: {
