@@ -102,101 +102,25 @@ function AccessPage() {
 
   const [adminList, setAdminList] = useState<AdminProfile[] | null>(null);
   const [adminPin, setAdminPin] = useState<string | null>(null);
-  const [showAdmins, setShowAdmins] = useState<boolean>(() => {
-    try {
-      const value = new URLSearchParams(window.location.search).get("admins");
-      if (value === "1") return true;
-      if (value === "0") return false;
-      return localStorage.getItem("pinAdmin.showAdmins") === "1";
-    } catch {
-      return false;
-    }
-  });
-  const [approvalFilter, setApprovalFilter] = useState<"all" | ApprovalKey>(() => {
-    try {
-      const value = new URLSearchParams(window.location.search).get("approval");
-      if (value === "pending" || value === "approved" || value === "changes_requested" || value === "all") return value;
-      const stored = localStorage.getItem("pinAdmin.approvalFilter");
-      return stored === "pending" || stored === "approved" || stored === "changes_requested" ? stored : "all";
-    } catch {
-      return "all";
-    }
-  });
-  const [countFilter, setCountFilter] = useState<"all" | "with" | "without" | "full">(() => {
-    try {
-      const value = new URLSearchParams(window.location.search).get("posts");
-      if (value === "with" || value === "without" || value === "full" || value === "all") return value;
-      const stored = localStorage.getItem("pinAdmin.countFilter");
-      return stored === "with" || stored === "without" || stored === "full" ? stored : "all";
-    } catch {
-      return "all";
-    }
-  });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("pinAdmin.showAdmins", showAdmins ? "1" : "0");
-      localStorage.setItem("pinAdmin.approvalFilter", approvalFilter);
-      localStorage.setItem("pinAdmin.countFilter", countFilter);
-
-      const url = new URL(window.location.href);
-      const setOrDelete = (key: string, value: string, defaultValue: string) => {
-        if (value === defaultValue) url.searchParams.delete(key);
-        else url.searchParams.set(key, value);
-      };
-
-      setOrDelete("admins", showAdmins ? "1" : "0", "0");
-      setOrDelete("approval", approvalFilter, "all");
-      setOrDelete("posts", countFilter, "all");
-      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-    } catch {
-      // Persistência de filtros é opcional quando storage/history não estão disponíveis.
-    }
-  }, [showAdmins, approvalFilter, countFilter]);
-
-  const filteredAdminList = useMemo(() => {
-    if (!adminList) return null;
-
-    return adminList.filter((profile) => {
-      const approvals = profile.approval_counts ?? { pending: 0, approved: 0, changes_requested: 0 };
-      const postCount = profile.post_count ?? 0;
-
-      if (!showAdmins && profile.is_admin) return false;
-      if (approvalFilter !== "all" && (approvals[approvalFilter] ?? 0) === 0) return false;
-      if (countFilter === "with" && postCount === 0) return false;
-      if (countFilter === "without" && postCount > 0) return false;
-      if (countFilter === "full" && postCount < 12) return false;
-
-      return true;
-    });
-  }, [adminList, approvalFilter, countFilter, showAdmins]);
-
-  const canReorderAdminProfiles = approvalFilter === "all" && countFilter === "all" && !showAdmins;
   const adminProfileSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
 
   const reorderAdminProfiles = async (event: DragEndEvent) => {
-    if (!adminList || !filteredAdminList || !adminPin || !event.over || event.active.id === event.over.id) return;
-    if (!canReorderAdminProfiles) return;
+    if (!adminList || !adminPin || !event.over || event.active.id === event.over.id) return;
 
-    const oldIndex = filteredAdminList.findIndex((profile) => profile.id === String(event.active.id));
-    const newIndex = filteredAdminList.findIndex((profile) => profile.id === String(event.over!.id));
+    const oldIndex = adminList.findIndex((profile) => profile.id === String(event.active.id));
+    const newIndex = adminList.findIndex((profile) => profile.id === String(event.over!.id));
     if (oldIndex < 0 || newIndex < 0) return;
 
-    const reorderedVisible = arrayMove(filteredAdminList, oldIndex, newIndex);
-    const visibleIds = new Set(filteredAdminList.map((profile) => profile.id));
-    const nextList = [
-      ...adminList.filter((profile) => !visibleIds.has(profile.id)),
-      ...reorderedVisible,
-    ];
-
+    const nextList = arrayMove(adminList, oldIndex, newIndex);
     setAdminList(nextList);
 
     const { error } = await supabase.rpc("admin_reorder_profiles", {
       _admin_pin: adminPin,
-      _profile_ids: reorderedVisible.map((profile) => profile.id),
+      _profile_ids: nextList.map((profile) => profile.id),
     });
 
     if (error) {
@@ -259,7 +183,7 @@ function AccessPage() {
       <AppFrame>
         <TopBar
           title="Painel admin"
-          subtitle={`${filteredAdminList?.length ?? adminList.length} de ${adminList.length} contas`}
+          subtitle={`${adminList.length} contas`}
           right={
             <button onClick={() => { setAdminList(null); setPin(""); }} className="text-xs text-muted-foreground px-3 h-8 rounded-full border border-hairline inline-flex items-center gap-1">
               <ArrowLeft className="h-3 w-3" /> Sair
@@ -284,49 +208,16 @@ function AccessPage() {
             <Plus className="h-4 w-4" /> Criar nova empresa
           </button>
 
-          <div className="flex flex-wrap gap-2 py-2 text-xs">
-            <AdminFilterChip active={showAdmins} onClick={() => setShowAdmins((value) => !value)}>
-              {showAdmins ? "Ocultar admins" : "Mostrar admins"}
-            </AdminFilterChip>
-            <AdminFilterChip active={approvalFilter === "pending"} onClick={() => setApprovalFilter((value) => value === "pending" ? "all" : "pending")}>
-              Com pendentes
-            </AdminFilterChip>
-            <AdminFilterChip active={approvalFilter === "approved"} onClick={() => setApprovalFilter((value) => value === "approved" ? "all" : "approved")}>
-              Com aprovados
-            </AdminFilterChip>
-            <AdminFilterChip active={approvalFilter === "changes_requested"} onClick={() => setApprovalFilter((value) => value === "changes_requested" ? "all" : "changes_requested")}>
-              Com alterações
-            </AdminFilterChip>
-            <AdminFilterChip active={countFilter === "with"} onClick={() => setCountFilter((value) => value === "with" ? "all" : "with")}>
-              Com posts
-            </AdminFilterChip>
-            <AdminFilterChip active={countFilter === "without"} onClick={() => setCountFilter((value) => value === "without" ? "all" : "without")}>
-              Sem posts
-            </AdminFilterChip>
-            <AdminFilterChip active={countFilter === "full"} onClick={() => setCountFilter((value) => value === "full" ? "all" : "full")}>
-              Feed cheio
-            </AdminFilterChip>
-            {showAdmins || approvalFilter !== "all" || countFilter !== "all" ? (
-              <button
-                type="button"
-                onClick={() => { setShowAdmins(false); setApprovalFilter("all"); setCountFilter("all"); }}
-                className="h-8 px-3 rounded-full text-xs text-slate-500 hover:text-slate-700"
-              >
-                Limpar filtros
-              </button>
-            ) : null}
-          </div>
-
-          {filteredAdminList && filteredAdminList.length > 0 ? (
+          {adminList.length > 0 ? (
             <DndContext sensors={adminProfileSensors} collisionDetection={closestCenter} onDragEnd={reorderAdminProfiles}>
-              <SortableContext items={filteredAdminList.map((profile) => profile.id)} strategy={rectSortingStrategy}>
+              <SortableContext items={adminList.map((profile) => profile.id)} strategy={rectSortingStrategy}>
                 <div className="space-y-2">
-                  {filteredAdminList.map((profile) => (
+                  {adminList.map((profile) => (
                     <SortableAdminProfileCard
                       key={profile.id}
                       profile={profile}
                       loading={loading}
-                      canReorder={canReorderAdminProfiles}
+                      canReorder={true}
                       onOpen={() => openAsAdmin(profile.access_pin)}
                     />
                   ))}

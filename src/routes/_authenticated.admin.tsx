@@ -51,47 +51,6 @@ function AdminPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adminPin, setAdminPin] = useState<string | null>(null);
-  const [showAdmins, setShowAdmins] = useState<boolean>(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get("admins");
-      if (q === "1") return true;
-      if (q === "0") return false;
-      return localStorage.getItem("admin.showAdmins") === "1";
-    } catch { return false; }
-  });
-  const [approvalFilter, setApprovalFilter] = useState<"all" | ApprovalKey>(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get("approval");
-      if (q === "pending" || q === "approved" || q === "changes_requested" || q === "all") return q as "all" | ApprovalKey;
-      const v = localStorage.getItem("admin.approvalFilter");
-      return v === "pending" || v === "approved" || v === "changes_requested" ? v : "all";
-    } catch { return "all"; }
-  });
-  const [countFilter, setCountFilter] = useState<"all" | "with" | "without" | "full">(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get("posts");
-      if (q === "with" || q === "without" || q === "full" || q === "all") return q;
-      const v = localStorage.getItem("admin.countFilter");
-      return v === "with" || v === "without" || v === "full" ? v : "all";
-    } catch { return "all"; }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("admin.showAdmins", showAdmins ? "1" : "0");
-      localStorage.setItem("admin.approvalFilter", approvalFilter);
-      localStorage.setItem("admin.countFilter", countFilter);
-      const url = new URL(window.location.href);
-      const setOrDel = (k: string, v: string, def: string) => {
-        if (v === def) url.searchParams.delete(k);
-        else url.searchParams.set(k, v);
-      };
-      setOrDel("admins", showAdmins ? "1" : "0", "0");
-      setOrDel("approval", approvalFilter, "all");
-      setOrDel("posts", countFilter, "all");
-      window.history.replaceState(null, "", url.pathname + (url.search ? url.search : "") + url.hash);
-    } catch {}
-  }, [showAdmins, approvalFilter, countFilter]);
 
 
   useEffect(() => {
@@ -140,16 +99,11 @@ function AdminPage() {
   const filtered = useMemo(() => {
     if (!rows) return null;
     const q = query.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (!showAdmins && r.is_admin) return false;
-      if (q && !(r.name.toLowerCase().includes(q) || r.handle.toLowerCase().includes(q) || r.access_pin.includes(q))) return false;
-      if (approvalFilter !== "all" && (r.approval_counts[approvalFilter] ?? 0) === 0) return false;
-      if (countFilter === "with" && r.post_count === 0) return false;
-      if (countFilter === "without" && r.post_count > 0) return false;
-      if (countFilter === "full" && r.post_count < 12) return false;
-      return true;
-    });
-  }, [rows, query, showAdmins, approvalFilter, countFilter]);
+    if (!q) return rows;
+    return rows.filter((r) =>
+      r.name.toLowerCase().includes(q) || r.handle.toLowerCase().includes(q) || r.access_pin.includes(q),
+    );
+  }, [rows, query]);
 
 
   const selected = filtered?.find((r) => r.id === selectedId) ?? null;
@@ -201,7 +155,7 @@ function AdminPage() {
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
 
-  const canReorder = query.trim() === "" && approvalFilter === "all" && countFilter === "all" && !showAdmins;
+  const canReorder = query.trim() === "";
 
   const handleDragEnd = async (e: DragEndEvent) => {
     if (!rows || !e.over || e.active.id === e.over.id) return;
@@ -269,37 +223,6 @@ function AdminPage() {
             />
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2 text-xs">
-            <FilterChip active={showAdmins} onClick={() => setShowAdmins((v) => !v)}>
-              {showAdmins ? "Ocultar admins" : "Mostrar admins"}
-            </FilterChip>
-            <FilterChip active={approvalFilter === "pending"} onClick={() => setApprovalFilter((v) => v === "pending" ? "all" : "pending")}>
-              Com pendentes
-            </FilterChip>
-            <FilterChip active={approvalFilter === "approved"} onClick={() => setApprovalFilter((v) => v === "approved" ? "all" : "approved")}>
-              Com aprovados
-            </FilterChip>
-            <FilterChip active={approvalFilter === "changes_requested"} onClick={() => setApprovalFilter((v) => v === "changes_requested" ? "all" : "changes_requested")}>
-              Com alterações
-            </FilterChip>
-            <FilterChip active={countFilter === "with"} onClick={() => setCountFilter((v) => v === "with" ? "all" : "with")}>
-              Com posts
-            </FilterChip>
-            <FilterChip active={countFilter === "without"} onClick={() => setCountFilter((v) => v === "without" ? "all" : "without")}>
-              Sem posts
-            </FilterChip>
-            <FilterChip active={countFilter === "full"} onClick={() => setCountFilter((v) => v === "full" ? "all" : "full")}>
-              Feed cheio (12/12)
-            </FilterChip>
-            {(showAdmins || approvalFilter !== "all" || countFilter !== "all" || query) ? (
-              <button
-                onClick={() => { setShowAdmins(false); setApprovalFilter("all"); setCountFilter("all"); setQuery(""); }}
-                className="h-8 px-3 rounded-full text-xs text-slate-500 hover:text-slate-700"
-              >
-                Limpar filtros
-              </button>
-            ) : null}
-          </div>
 
 
           {filtered === null ? (
