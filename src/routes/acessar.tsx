@@ -183,7 +183,7 @@ function AccessPage() {
       <AppFrame>
         <TopBar
           title="Painel admin"
-          subtitle={`${filteredAdminList?.length ?? adminList.length} de ${adminList.length} contas`}
+          subtitle={`${adminList.length} contas`}
           right={
             <button onClick={() => { setAdminList(null); setPin(""); }} className="text-xs text-muted-foreground px-3 h-8 rounded-full border border-hairline inline-flex items-center gap-1">
               <ArrowLeft className="h-3 w-3" /> Sair
