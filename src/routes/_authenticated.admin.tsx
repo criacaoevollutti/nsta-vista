@@ -71,18 +71,26 @@ function AdminPage() {
     const [{ data: profiles, error }, { data: postRows }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id,name,handle,access_pin,updated_at,position")
+        .select("id,name,handle,access_pin,updated_at,position,is_admin")
         .order("position", { ascending: true, nullsFirst: false })
         .order("updated_at", { ascending: false }),
-      supabase.from("posts").select("user_id"),
+      supabase.from("posts").select("user_id,approval_status"),
     ]);
     if (error) return toast.error("Erro ao carregar clientes");
     const counts = new Map<string, number>();
-    for (const p of postRows ?? []) counts.set(p.user_id, (counts.get(p.user_id) ?? 0) + 1);
+    const approvals = new Map<string, Record<ApprovalKey, number>>();
+    for (const p of postRows ?? []) {
+      counts.set(p.user_id, (counts.get(p.user_id) ?? 0) + 1);
+      const key = (p.approval_status ?? "pending") as ApprovalKey;
+      const cur = approvals.get(p.user_id) ?? { pending: 0, approved: 0, changes_requested: 0 };
+      if (key === "pending" || key === "approved" || key === "changes_requested") cur[key] += 1;
+      approvals.set(p.user_id, cur);
+    }
     setRows(
       (profiles ?? []).map((p) => ({
-        ...(p as Omit<Row, "post_count">),
+        ...(p as Omit<Row, "post_count" | "approval_counts">),
         post_count: counts.get(p.id) ?? 0,
+        approval_counts: approvals.get(p.id) ?? { pending: 0, approved: 0, changes_requested: 0 },
       })),
     );
   };
@@ -94,14 +102,17 @@ function AdminPage() {
   const filtered = useMemo(() => {
     if (!rows) return null;
     const q = query.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (r) =>
-        r.name.toLowerCase().includes(q) ||
-        r.handle.toLowerCase().includes(q) ||
-        r.access_pin.includes(q),
-    );
-  }, [rows, query]);
+    return rows.filter((r) => {
+      if (!showAdmins && r.is_admin) return false;
+      if (q && !(r.name.toLowerCase().includes(q) || r.handle.toLowerCase().includes(q) || r.access_pin.includes(q))) return false;
+      if (approvalFilter !== "all" && (r.approval_counts[approvalFilter] ?? 0) === 0) return false;
+      if (countFilter === "with" && r.post_count === 0) return false;
+      if (countFilter === "without" && r.post_count > 0) return false;
+      if (countFilter === "full" && r.post_count < 12) return false;
+      return true;
+    });
+  }, [rows, query, showAdmins, approvalFilter, countFilter]);
+
 
   const selected = filtered?.find((r) => r.id === selectedId) ?? null;
 
