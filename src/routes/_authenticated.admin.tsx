@@ -222,7 +222,7 @@ function AdminPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="font-semibold truncate">{r.name || "Sem nome"}</div>
-                            <div className="text-xs text-slate-500 truncate">@{r.handle}</div>
+                            <div className="text-xs text-slate-500 truncate">@{r.handle.replace(/^@+/, "")}</div>
                           </div>
                           <span
                             className="text-[10px] font-mono px-2 py-0.5 rounded-full"
@@ -317,7 +317,7 @@ function DetailCard({
       <div>
         <div className="text-xs uppercase tracking-wider text-slate-400">Empresa</div>
         <div className="font-semibold text-lg mt-0.5">{row.name || "Sem nome"}</div>
-        <div className="text-xs text-slate-500">@{row.handle}</div>
+        <div className="text-xs text-slate-500">@{row.handle.replace(/^@+/, "")}</div>
       </div>
 
       <div className="rounded-2xl p-5 text-center" style={{ background: "linear-gradient(135deg,#faf5ff,#fff7ed)" }}>

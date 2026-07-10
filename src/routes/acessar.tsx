@@ -185,7 +185,7 @@ function AccessPage() {
                   {p.name}
                   {p.is_admin ? <ShieldCheck className="h-3.5 w-3.5 text-purple-600 shrink-0" /> : null}
                 </div>
-                <div className="text-xs text-slate-500 truncate">@{p.handle}</div>
+                <div className="text-xs text-slate-500 truncate">@{p.handle.replace(/^@+/, "")}</div>
               </div>
               <div className="text-right">
                 <div className="text-[10px] uppercase tracking-wider text-slate-400">PIN</div>
@@ -379,7 +379,7 @@ function ClientFeed({
                 {isAdmin ? (
                   <EditableText as="div" value={prof.handle} onChange={(handle) => { setProf((p) => ({ ...p, handle })); void saveProfile({ handle }); }} className="font-semibold text-[15px] leading-tight" />
                 ) : (
-                  <div className="font-semibold text-[15px] leading-tight truncate">@{prof.handle}</div>
+                  <div className="font-semibold text-[15px] leading-tight truncate">@{prof.handle.replace(/^@+/, "")}</div>
                 )}
                 {isAdmin ? (
                   <EditableText as="div" value={prof.name} onChange={(name) => { setProf((p) => ({ ...p, name })); void saveProfile({ name }); }} className="text-xs text-muted-foreground" />

@@ -96,7 +96,7 @@ function AdminEditPage() {
       />
       <div className="flex-1 overflow-y-auto">
         <div className="bg-primary/10 text-xs text-center py-1.5 border-b border-hairline">
-          Modo admin — editando feed de @{handle}
+          Modo admin — editando feed de @{handle.replace(/^@+/, "")}
         </div>
         <ProfileHeader approvedCount={approved} total={shown} editable />
         <Highlights scopeId={targetId} />
