@@ -60,12 +60,11 @@ function AdminPage() {
 
 
   const load = async () => {
-    // Fetch profiles and post ownership in a single round-trip pair,
-    // then aggregate counts client-side (avoids N+1 count queries).
     const [{ data: profiles, error }, { data: postRows }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id,name,handle,access_pin,updated_at")
+        .select("id,name,handle,access_pin,updated_at,position")
+        .order("position", { ascending: true, nullsFirst: false })
         .order("updated_at", { ascending: false }),
       supabase.from("posts").select("user_id"),
     ]);
