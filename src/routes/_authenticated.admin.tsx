@@ -32,6 +32,7 @@ type Row = {
   handle: string;
   access_pin: string;
   updated_at: string;
+  position: number | null;
   post_count: number;
 };
 
