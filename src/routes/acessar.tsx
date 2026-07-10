@@ -77,6 +77,7 @@ type AdminProfile = {
   avatar: string | null;
   access_pin: string;
   is_admin: boolean;
+  approved?: boolean;
   position?: number | null;
   post_count?: number;
   approval_counts?: Record<ApprovalKey, number>;
@@ -219,11 +220,25 @@ function AccessPage() {
                       loading={loading}
                       canReorder={true}
                       onOpen={() => openAsAdmin(profile.access_pin)}
+                      onToggleApproved={async () => {
+                        const next = !profile.approved;
+                        setAdminList((prev) => prev?.map((p) => p.id === profile.id ? { ...p, approved: next } : p) ?? prev);
+                        const { data: ok, error } = await supabase.rpc("admin_set_profile_approved", {
+                          _admin_pin: adminPin!,
+                          _target_id: profile.id,
+                          _approved: next,
+                        });
+                        if (error || !ok) {
+                          setAdminList((prev) => prev?.map((p) => p.id === profile.id ? { ...p, approved: !next } : p) ?? prev);
+                          toast.error("Falha ao atualizar aprovação");
+                        }
+                      }}
                     />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
+
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
               Nenhuma empresa encontrada.
@@ -330,11 +345,13 @@ function SortableAdminProfileCard({
   loading,
   canReorder,
   onOpen,
+  onToggleApproved,
 }: {
   profile: AdminProfile;
   loading: boolean;
   canReorder: boolean;
   onOpen: () => void;
+  onToggleApproved: () => void;
 }) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: profile.id,
@@ -352,13 +369,16 @@ function SortableAdminProfileCard({
     approvalCounts.changes_requested > 0 ? `${approvalCounts.changes_requested} alt.` : null,
   ].filter(Boolean).join(" · ");
 
+  const isApproved = !!profile.approved;
+
   return (
     <div ref={setNodeRef} style={style} className={isDragging ? "relative shadow-lg rounded-2xl" : undefined}>
-      <button
-        type="button"
-        onClick={onOpen}
-        disabled={loading}
-        className="w-full flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:border-purple-400 hover:bg-purple-50/40 transition text-left disabled:opacity-50 bg-white"
+      <div
+        className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition text-left bg-white ${
+          isApproved
+            ? "border-emerald-400 bg-emerald-50/60 hover:border-emerald-500"
+            : "border-slate-200 hover:border-purple-400 hover:bg-purple-50/40"
+        } ${loading ? "opacity-50" : ""}`}
       >
         {canReorder ? (
           <span
@@ -366,37 +386,59 @@ function SortableAdminProfileCard({
             aria-label="Mover empresa"
             {...attributes}
             {...listeners}
-            onClick={(event) => event.stopPropagation()}
           >
             <GripVertical className="h-4 w-4" />
           </span>
         ) : null}
 
-        {profile.avatar ? (
-          <img src={profile.avatar} alt={profile.name} className="h-12 w-12 rounded-full object-cover" />
-        ) : (
-          <div className="h-12 w-12 rounded-full grid place-items-center text-white font-semibold" style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}>
-            {profile.name.charAt(0).toUpperCase()}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onToggleApproved(); }}
+          className={`h-6 w-6 shrink-0 rounded-md border-2 grid place-items-center transition ${
+            isApproved
+              ? "bg-emerald-500 border-emerald-500 text-white"
+              : "bg-white border-slate-300 hover:border-emerald-400"
+          }`}
+          aria-label={isApproved ? "Desmarcar aprovada" : "Marcar como aprovada"}
+          title={isApproved ? "Aprovada — clique para desmarcar" : "Marcar como aprovada"}
+        >
+          {isApproved ? <Check className="h-4 w-4" /> : null}
+        </button>
+
+        <button
+          type="button"
+          onClick={onOpen}
+          disabled={loading}
+          className="flex-1 flex items-center gap-3 min-w-0 text-left"
+        >
+          {profile.avatar ? (
+            <img src={profile.avatar} alt={profile.name} className={`h-12 w-12 rounded-full object-cover ${isApproved ? "ring-2 ring-emerald-400" : ""}`} />
+          ) : (
+            <div className={`h-12 w-12 rounded-full grid place-items-center text-white font-semibold ${isApproved ? "ring-2 ring-emerald-400" : ""}`} style={{ background: isApproved ? "linear-gradient(135deg,#10b981,#059669)" : "linear-gradient(135deg,#7c3aed,#f97316)" }}>
+              {profile.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className={`font-semibold flex items-center gap-1.5 truncate ${isApproved ? "text-emerald-800" : "text-slate-900"}`}>
+              {profile.name}
+              {profile.is_admin ? <ShieldCheck className="h-3.5 w-3.5 text-purple-600 shrink-0" /> : null}
+              {isApproved ? <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500 text-white">Aprovada</span> : null}
+            </div>
+            <div className="text-xs text-slate-500 truncate">@{profile.handle.replace(/^@+/, "")}</div>
+            <div className="text-[11px] text-slate-400 truncate">
+              {profile.post_count ?? 0}/12 posts{statusSummary ? ` · ${statusSummary}` : ""}
+            </div>
           </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-slate-900 flex items-center gap-1.5 truncate">
-            {profile.name}
-            {profile.is_admin ? <ShieldCheck className="h-3.5 w-3.5 text-purple-600 shrink-0" /> : null}
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-wider text-slate-400">PIN</div>
+            <div className={`text-sm font-mono font-bold ${isApproved ? "text-emerald-600" : "text-orange-600"}`}>{profile.access_pin}</div>
           </div>
-          <div className="text-xs text-slate-500 truncate">@{profile.handle.replace(/^@+/, "")}</div>
-          <div className="text-[11px] text-slate-400 truncate">
-            {profile.post_count ?? 0}/12 posts{statusSummary ? ` · ${statusSummary}` : ""}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-[10px] uppercase tracking-wider text-slate-400">PIN</div>
-          <div className="text-sm font-mono font-bold text-orange-600">{profile.access_pin}</div>
-        </div>
-      </button>
+        </button>
+      </div>
     </div>
   );
 }
+
 
 function ClientFeed({
   profile,
