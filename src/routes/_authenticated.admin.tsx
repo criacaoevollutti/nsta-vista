@@ -317,7 +317,7 @@ function DetailCard({
       <div>
         <div className="text-xs uppercase tracking-wider text-slate-400">Empresa</div>
         <div className="font-semibold text-lg mt-0.5">{row.name || "Sem nome"}</div>
-        <div className="text-xs text-slate-500">@{row.handle}</div>
+        <div className="text-xs text-slate-500">@{row.handle.replace(/^@+/, "")}</div>
       </div>
 
       <div className="rounded-2xl p-5 text-center" style={{ background: "linear-gradient(135deg,#faf5ff,#fff7ed)" }}>
