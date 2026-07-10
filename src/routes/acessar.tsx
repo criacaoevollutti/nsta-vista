@@ -220,11 +220,25 @@ function AccessPage() {
                       loading={loading}
                       canReorder={true}
                       onOpen={() => openAsAdmin(profile.access_pin)}
+                      onToggleApproved={async () => {
+                        const next = !profile.approved;
+                        setAdminList((prev) => prev?.map((p) => p.id === profile.id ? { ...p, approved: next } : p) ?? prev);
+                        const { data: ok, error } = await supabase.rpc("admin_set_profile_approved", {
+                          _admin_pin: adminPin!,
+                          _target_id: profile.id,
+                          _approved: next,
+                        });
+                        if (error || !ok) {
+                          setAdminList((prev) => prev?.map((p) => p.id === profile.id ? { ...p, approved: !next } : p) ?? prev);
+                          toast.error("Falha ao atualizar aprovação");
+                        }
+                      }}
                     />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
+
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
               Nenhuma empresa encontrada.
