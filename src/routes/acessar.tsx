@@ -77,6 +77,7 @@ type AdminProfile = {
   avatar: string | null;
   access_pin: string;
   is_admin: boolean;
+  approved?: boolean;
   position?: number | null;
   post_count?: number;
   approval_counts?: Record<ApprovalKey, number>;
