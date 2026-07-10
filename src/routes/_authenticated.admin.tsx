@@ -51,6 +51,10 @@ function AdminPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adminPin, setAdminPin] = useState<string | null>(null);
+  const [showAdmins, setShowAdmins] = useState(false);
+  const [approvalFilter, setApprovalFilter] = useState<"all" | ApprovalKey>("all");
+  const [countFilter, setCountFilter] = useState<"all" | "with" | "without" | "full">("all");
+
 
   useEffect(() => {
     if (!isAdmin) return;
