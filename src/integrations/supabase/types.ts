@@ -282,6 +282,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      storage_pin_name_valid: { Args: { _name: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "client"
