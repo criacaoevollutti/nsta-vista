@@ -222,7 +222,7 @@ function AdminPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="font-semibold truncate">{r.name || "Sem nome"}</div>
-                            <div className="text-xs text-slate-500 truncate">@{r.handle}</div>
+                            <div className="text-xs text-slate-500 truncate">@{r.handle.replace(/^@+/, "")}</div>
                           </div>
                           <span
                             className="text-[10px] font-mono px-2 py-0.5 rounded-full"
