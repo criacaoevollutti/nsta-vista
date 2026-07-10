@@ -140,6 +140,30 @@ function AdminPage() {
     }
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+  );
+
+  const canReorder = query.trim() === "";
+
+  const handleDragEnd = async (e: DragEndEvent) => {
+    if (!rows || !e.over || e.active.id === e.over.id) return;
+    if (!adminPin) { toast.error("PIN de admin indisponível"); return; }
+    const oldIdx = rows.findIndex((r) => r.id === e.active.id);
+    const newIdx = rows.findIndex((r) => r.id === e.over!.id);
+    if (oldIdx < 0 || newIdx < 0) return;
+    const next = arrayMove(rows, oldIdx, newIdx);
+    setRows(next);
+    const { error } = await supabase.rpc("admin_reorder_profiles", {
+      _admin_pin: adminPin,
+      _profile_ids: next.map((r) => r.id),
+    });
+    if (error) { toast.error("Falha ao reordenar"); void load(); }
+  };
+
+
+
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
