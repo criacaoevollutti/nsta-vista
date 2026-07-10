@@ -208,49 +208,16 @@ function AccessPage() {
             <Plus className="h-4 w-4" /> Criar nova empresa
           </button>
 
-          <div className="flex flex-wrap gap-2 py-2 text-xs">
-            <AdminFilterChip active={showAdmins} onClick={() => setShowAdmins((value) => !value)}>
-              {showAdmins ? "Ocultar admins" : "Mostrar admins"}
-            </AdminFilterChip>
-            <AdminFilterChip active={approvalFilter === "pending"} onClick={() => setApprovalFilter((value) => value === "pending" ? "all" : "pending")}>
-              Com pendentes
-            </AdminFilterChip>
-            <AdminFilterChip active={approvalFilter === "approved"} onClick={() => setApprovalFilter((value) => value === "approved" ? "all" : "approved")}>
-              Com aprovados
-            </AdminFilterChip>
-            <AdminFilterChip active={approvalFilter === "changes_requested"} onClick={() => setApprovalFilter((value) => value === "changes_requested" ? "all" : "changes_requested")}>
-              Com alterações
-            </AdminFilterChip>
-            <AdminFilterChip active={countFilter === "with"} onClick={() => setCountFilter((value) => value === "with" ? "all" : "with")}>
-              Com posts
-            </AdminFilterChip>
-            <AdminFilterChip active={countFilter === "without"} onClick={() => setCountFilter((value) => value === "without" ? "all" : "without")}>
-              Sem posts
-            </AdminFilterChip>
-            <AdminFilterChip active={countFilter === "full"} onClick={() => setCountFilter((value) => value === "full" ? "all" : "full")}>
-              Feed cheio
-            </AdminFilterChip>
-            {showAdmins || approvalFilter !== "all" || countFilter !== "all" ? (
-              <button
-                type="button"
-                onClick={() => { setShowAdmins(false); setApprovalFilter("all"); setCountFilter("all"); }}
-                className="h-8 px-3 rounded-full text-xs text-slate-500 hover:text-slate-700"
-              >
-                Limpar filtros
-              </button>
-            ) : null}
-          </div>
-
-          {filteredAdminList && filteredAdminList.length > 0 ? (
+          {adminList.length > 0 ? (
             <DndContext sensors={adminProfileSensors} collisionDetection={closestCenter} onDragEnd={reorderAdminProfiles}>
-              <SortableContext items={filteredAdminList.map((profile) => profile.id)} strategy={rectSortingStrategy}>
+              <SortableContext items={adminList.map((profile) => profile.id)} strategy={rectSortingStrategy}>
                 <div className="space-y-2">
-                  {filteredAdminList.map((profile) => (
+                  {adminList.map((profile) => (
                     <SortableAdminProfileCard
                       key={profile.id}
                       profile={profile}
                       loading={loading}
-                      canReorder={canReorderAdminProfiles}
+                      canReorder={true}
                       onOpen={() => openAsAdmin(profile.access_pin)}
                     />
                   ))}
