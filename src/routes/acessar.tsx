@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useRef, useState } from "react";
-import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus, X, ImagePlus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Camera, Check, Delete, GripVertical, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus, X, ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -12,7 +12,7 @@ import { CarouselMedia } from "@/components/CarouselMedia";
 import { EditableText } from "@/components/EditableText";
 import { useLiveProfile } from "@/hooks/use-live-profile";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter, type DragEndEvent } from "@dnd-kit/core";
-import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 function formatDateBR(d?: string) {
@@ -77,7 +77,12 @@ type AdminProfile = {
   avatar: string | null;
   access_pin: string;
   is_admin: boolean;
+  position?: number | null;
+  post_count?: number;
+  approval_counts?: Record<ApprovalKey, number>;
 };
+
+type ApprovalKey = "pending" | "approved" | "changes_requested";
 
 function AccessPage() {
   const [pin, setPin] = useState("");
@@ -97,6 +102,107 @@ function AccessPage() {
 
   const [adminList, setAdminList] = useState<AdminProfile[] | null>(null);
   const [adminPin, setAdminPin] = useState<string | null>(null);
+  const [showAdmins, setShowAdmins] = useState<boolean>(() => {
+    try {
+      const value = new URLSearchParams(window.location.search).get("admins");
+      if (value === "1") return true;
+      if (value === "0") return false;
+      return localStorage.getItem("pinAdmin.showAdmins") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [approvalFilter, setApprovalFilter] = useState<"all" | ApprovalKey>(() => {
+    try {
+      const value = new URLSearchParams(window.location.search).get("approval");
+      if (value === "pending" || value === "approved" || value === "changes_requested" || value === "all") return value;
+      const stored = localStorage.getItem("pinAdmin.approvalFilter");
+      return stored === "pending" || stored === "approved" || stored === "changes_requested" ? stored : "all";
+    } catch {
+      return "all";
+    }
+  });
+  const [countFilter, setCountFilter] = useState<"all" | "with" | "without" | "full">(() => {
+    try {
+      const value = new URLSearchParams(window.location.search).get("posts");
+      if (value === "with" || value === "without" || value === "full" || value === "all") return value;
+      const stored = localStorage.getItem("pinAdmin.countFilter");
+      return stored === "with" || stored === "without" || stored === "full" ? stored : "all";
+    } catch {
+      return "all";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("pinAdmin.showAdmins", showAdmins ? "1" : "0");
+      localStorage.setItem("pinAdmin.approvalFilter", approvalFilter);
+      localStorage.setItem("pinAdmin.countFilter", countFilter);
+
+      const url = new URL(window.location.href);
+      const setOrDelete = (key: string, value: string, defaultValue: string) => {
+        if (value === defaultValue) url.searchParams.delete(key);
+        else url.searchParams.set(key, value);
+      };
+
+      setOrDelete("admins", showAdmins ? "1" : "0", "0");
+      setOrDelete("approval", approvalFilter, "all");
+      setOrDelete("posts", countFilter, "all");
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    } catch {
+      // Persistência de filtros é opcional quando storage/history não estão disponíveis.
+    }
+  }, [showAdmins, approvalFilter, countFilter]);
+
+  const filteredAdminList = useMemo(() => {
+    if (!adminList) return null;
+
+    return adminList.filter((profile) => {
+      const approvals = profile.approval_counts ?? { pending: 0, approved: 0, changes_requested: 0 };
+      const postCount = profile.post_count ?? 0;
+
+      if (!showAdmins && profile.is_admin) return false;
+      if (approvalFilter !== "all" && (approvals[approvalFilter] ?? 0) === 0) return false;
+      if (countFilter === "with" && postCount === 0) return false;
+      if (countFilter === "without" && postCount > 0) return false;
+      if (countFilter === "full" && postCount < 12) return false;
+
+      return true;
+    });
+  }, [adminList, approvalFilter, countFilter, showAdmins]);
+
+  const canReorderAdminProfiles = approvalFilter === "all" && countFilter === "all" && !showAdmins;
+  const adminProfileSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+  );
+
+  const reorderAdminProfiles = async (event: DragEndEvent) => {
+    if (!adminList || !filteredAdminList || !adminPin || !event.over || event.active.id === event.over.id) return;
+    if (!canReorderAdminProfiles) return;
+
+    const oldIndex = filteredAdminList.findIndex((profile) => profile.id === String(event.active.id));
+    const newIndex = filteredAdminList.findIndex((profile) => profile.id === String(event.over!.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const reorderedVisible = arrayMove(filteredAdminList, oldIndex, newIndex);
+    const visibleIds = new Set(filteredAdminList.map((profile) => profile.id));
+    const nextList = [
+      ...adminList.filter((profile) => !visibleIds.has(profile.id)),
+      ...reorderedVisible,
+    ];
+
+    setAdminList(nextList);
+
+    const { error } = await supabase.rpc("admin_reorder_profiles", {
+      _admin_pin: adminPin,
+      _profile_ids: reorderedVisible.map((profile) => profile.id),
+    });
+
+    if (error) {
+      toast.error("Falha ao salvar ordem");
+    }
+  };
 
   const submit = async (value: string) => {
     if (value.length !== 4) return;
@@ -153,7 +259,7 @@ function AccessPage() {
       <AppFrame>
         <TopBar
           title="Painel admin"
-          subtitle={`${adminList.length} contas`}
+          subtitle={`${filteredAdminList?.length ?? adminList.length} de ${adminList.length} contas`}
           right={
             <button onClick={() => { setAdminList(null); setPin(""); }} className="text-xs text-muted-foreground px-3 h-8 rounded-full border border-hairline inline-flex items-center gap-1">
               <ArrowLeft className="h-3 w-3" /> Sair
@@ -178,33 +284,60 @@ function AccessPage() {
             <Plus className="h-4 w-4" /> Criar nova empresa
           </button>
 
-          {adminList.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => openAsAdmin(p.access_pin)}
-              disabled={loading}
-              className="w-full flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:border-purple-400 hover:bg-purple-50/40 transition text-left disabled:opacity-50"
-            >
-              {p.avatar ? (
-                <img src={p.avatar} alt={p.name} className="h-12 w-12 rounded-full object-cover" />
-              ) : (
-                <div className="h-12 w-12 rounded-full grid place-items-center text-white font-semibold" style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}>
-                  {p.name.charAt(0).toUpperCase()}
+          <div className="flex flex-wrap gap-2 py-2 text-xs">
+            <AdminFilterChip active={showAdmins} onClick={() => setShowAdmins((value) => !value)}>
+              {showAdmins ? "Ocultar admins" : "Mostrar admins"}
+            </AdminFilterChip>
+            <AdminFilterChip active={approvalFilter === "pending"} onClick={() => setApprovalFilter((value) => value === "pending" ? "all" : "pending")}>
+              Com pendentes
+            </AdminFilterChip>
+            <AdminFilterChip active={approvalFilter === "approved"} onClick={() => setApprovalFilter((value) => value === "approved" ? "all" : "approved")}>
+              Com aprovados
+            </AdminFilterChip>
+            <AdminFilterChip active={approvalFilter === "changes_requested"} onClick={() => setApprovalFilter((value) => value === "changes_requested" ? "all" : "changes_requested")}>
+              Com alterações
+            </AdminFilterChip>
+            <AdminFilterChip active={countFilter === "with"} onClick={() => setCountFilter((value) => value === "with" ? "all" : "with")}>
+              Com posts
+            </AdminFilterChip>
+            <AdminFilterChip active={countFilter === "without"} onClick={() => setCountFilter((value) => value === "without" ? "all" : "without")}>
+              Sem posts
+            </AdminFilterChip>
+            <AdminFilterChip active={countFilter === "full"} onClick={() => setCountFilter((value) => value === "full" ? "all" : "full")}>
+              Feed cheio
+            </AdminFilterChip>
+            {showAdmins || approvalFilter !== "all" || countFilter !== "all" ? (
+              <button
+                type="button"
+                onClick={() => { setShowAdmins(false); setApprovalFilter("all"); setCountFilter("all"); }}
+                className="h-8 px-3 rounded-full text-xs text-slate-500 hover:text-slate-700"
+              >
+                Limpar filtros
+              </button>
+            ) : null}
+          </div>
+
+          {filteredAdminList && filteredAdminList.length > 0 ? (
+            <DndContext sensors={adminProfileSensors} collisionDetection={closestCenter} onDragEnd={reorderAdminProfiles}>
+              <SortableContext items={filteredAdminList.map((profile) => profile.id)} strategy={rectSortingStrategy}>
+                <div className="space-y-2">
+                  {filteredAdminList.map((profile) => (
+                    <SortableAdminProfileCard
+                      key={profile.id}
+                      profile={profile}
+                      loading={loading}
+                      canReorder={canReorderAdminProfiles}
+                      onOpen={() => openAsAdmin(profile.access_pin)}
+                    />
+                  ))}
                 </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-slate-900 flex items-center gap-1.5 truncate">
-                  {p.name}
-                  {p.is_admin ? <ShieldCheck className="h-3.5 w-3.5 text-purple-600 shrink-0" /> : null}
-                </div>
-                <div className="text-xs text-slate-500 truncate">@{p.handle.replace(/^@+/, "")}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400">PIN</div>
-                <div className="text-sm font-mono font-bold text-orange-600">{p.access_pin}</div>
-              </div>
-            </button>
-          ))}
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
+              Nenhuma empresa encontrada.
+            </div>
+          )}
         </div>
       </AppFrame>
     );
@@ -274,6 +407,103 @@ function AccessPage() {
         </div>
       </div>
     </AppFrame>
+  );
+}
+
+function AdminFilterChip({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-8 px-3 rounded-full border text-xs font-medium transition ${
+        active
+          ? "border-purple-300 bg-purple-50 text-purple-700"
+          : "border-slate-200 bg-white text-slate-600 hover:border-orange-200 hover:text-orange-600"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SortableAdminProfileCard({
+  profile,
+  loading,
+  canReorder,
+  onOpen,
+}: {
+  profile: AdminProfile;
+  loading: boolean;
+  canReorder: boolean;
+  onOpen: () => void;
+}) {
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
+    id: profile.id,
+    disabled: !canReorder,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 20 : undefined,
+  };
+  const approvalCounts = profile.approval_counts ?? { pending: 0, approved: 0, changes_requested: 0 };
+  const statusSummary = [
+    approvalCounts.pending > 0 ? `${approvalCounts.pending} pend.` : null,
+    approvalCounts.approved > 0 ? `${approvalCounts.approved} aprov.` : null,
+    approvalCounts.changes_requested > 0 ? `${approvalCounts.changes_requested} alt.` : null,
+  ].filter(Boolean).join(" · ");
+
+  return (
+    <div ref={setNodeRef} style={style} className={isDragging ? "relative shadow-lg rounded-2xl" : undefined}>
+      <button
+        type="button"
+        onClick={onOpen}
+        disabled={loading}
+        className="w-full flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:border-purple-400 hover:bg-purple-50/40 transition text-left disabled:opacity-50 bg-white"
+      >
+        {canReorder ? (
+          <span
+            className="h-9 w-5 grid place-items-center text-slate-300 cursor-grab active:cursor-grabbing touch-none shrink-0"
+            aria-label="Mover empresa"
+            {...attributes}
+            {...listeners}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <GripVertical className="h-4 w-4" />
+          </span>
+        ) : null}
+
+        {profile.avatar ? (
+          <img src={profile.avatar} alt={profile.name} className="h-12 w-12 rounded-full object-cover" />
+        ) : (
+          <div className="h-12 w-12 rounded-full grid place-items-center text-white font-semibold" style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}>
+            {profile.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-slate-900 flex items-center gap-1.5 truncate">
+            {profile.name}
+            {profile.is_admin ? <ShieldCheck className="h-3.5 w-3.5 text-purple-600 shrink-0" /> : null}
+          </div>
+          <div className="text-xs text-slate-500 truncate">@{profile.handle.replace(/^@+/, "")}</div>
+          <div className="text-[11px] text-slate-400 truncate">
+            {profile.post_count ?? 0}/12 posts{statusSummary ? ` · ${statusSummary}` : ""}
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-[10px] uppercase tracking-wider text-slate-400">PIN</div>
+          <div className="text-sm font-mono font-bold text-orange-600">{profile.access_pin}</div>
+        </div>
+      </button>
+    </div>
   );
 }
 
