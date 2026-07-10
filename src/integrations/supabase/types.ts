@@ -136,6 +136,7 @@ export type Database = {
           is_admin: boolean
           location: string
           name: string
+          position: number | null
           posts_count: number | null
           share_token: string
           site: string
@@ -156,6 +157,7 @@ export type Database = {
           is_admin?: boolean
           location?: string
           name?: string
+          position?: number | null
           posts_count?: number | null
           share_token?: string
           site?: string
@@ -176,6 +178,7 @@ export type Database = {
           is_admin?: boolean
           location?: string
           name?: string
+          position?: number | null
           posts_count?: number | null
           share_token?: string
           site?: string
@@ -227,6 +230,10 @@ export type Database = {
       }
       admin_reorder_posts: {
         Args: { _admin_pin: string; _post_ids: string[]; _target_id: string }
+        Returns: boolean
+      }
+      admin_reorder_profiles: {
+        Args: { _admin_pin: string; _profile_ids: string[] }
         Returns: boolean
       }
       admin_update_highlights: {
