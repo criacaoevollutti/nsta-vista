@@ -684,7 +684,7 @@ function PostReviewSheet({
           <div className="grid grid-cols-2 gap-2">
             <div className="text-xs">
               <span className="text-muted-foreground">Data</span>
-              <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center">{post.date}</div>
+              <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center">{formatDateBR(post.date)}</div>
             </div>
             <div className="text-xs">
               <span className="text-muted-foreground">Hora</span>
@@ -694,7 +694,7 @@ function PostReviewSheet({
 
           <div className="text-xs block">
             <span className="text-muted-foreground">Tipo</span>
-            <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center capitalize">{post.type}</div>
+            <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center">{formatTypePT(post.type)}</div>
           </div>
 
 
