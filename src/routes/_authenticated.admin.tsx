@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
+type ApprovalKey = "pending" | "approved" | "changes_requested";
 type Row = {
   id: string;
   name: string;
@@ -33,7 +34,9 @@ type Row = {
   access_pin: string;
   updated_at: string;
   position: number | null;
+  is_admin: boolean;
   post_count: number;
+  approval_counts: Record<ApprovalKey, number>;
 };
 
 const PURPLE = "#7c3aed";
@@ -48,6 +51,10 @@ function AdminPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adminPin, setAdminPin] = useState<string | null>(null);
+  const [showAdmins, setShowAdmins] = useState(false);
+  const [approvalFilter, setApprovalFilter] = useState<"all" | ApprovalKey>("all");
+  const [countFilter, setCountFilter] = useState<"all" | "with" | "without" | "full">("all");
+
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -64,18 +71,26 @@ function AdminPage() {
     const [{ data: profiles, error }, { data: postRows }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id,name,handle,access_pin,updated_at,position")
+        .select("id,name,handle,access_pin,updated_at,position,is_admin")
         .order("position", { ascending: true, nullsFirst: false })
         .order("updated_at", { ascending: false }),
-      supabase.from("posts").select("user_id"),
+      supabase.from("posts").select("user_id,approval_status"),
     ]);
     if (error) return toast.error("Erro ao carregar clientes");
     const counts = new Map<string, number>();
-    for (const p of postRows ?? []) counts.set(p.user_id, (counts.get(p.user_id) ?? 0) + 1);
+    const approvals = new Map<string, Record<ApprovalKey, number>>();
+    for (const p of postRows ?? []) {
+      counts.set(p.user_id, (counts.get(p.user_id) ?? 0) + 1);
+      const key = (p.approval_status ?? "pending") as ApprovalKey;
+      const cur = approvals.get(p.user_id) ?? { pending: 0, approved: 0, changes_requested: 0 };
+      if (key === "pending" || key === "approved" || key === "changes_requested") cur[key] += 1;
+      approvals.set(p.user_id, cur);
+    }
     setRows(
       (profiles ?? []).map((p) => ({
-        ...(p as Omit<Row, "post_count">),
+        ...(p as Omit<Row, "post_count" | "approval_counts">),
         post_count: counts.get(p.id) ?? 0,
+        approval_counts: approvals.get(p.id) ?? { pending: 0, approved: 0, changes_requested: 0 },
       })),
     );
   };
@@ -87,14 +102,17 @@ function AdminPage() {
   const filtered = useMemo(() => {
     if (!rows) return null;
     const q = query.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (r) =>
-        r.name.toLowerCase().includes(q) ||
-        r.handle.toLowerCase().includes(q) ||
-        r.access_pin.includes(q),
-    );
-  }, [rows, query]);
+    return rows.filter((r) => {
+      if (!showAdmins && r.is_admin) return false;
+      if (q && !(r.name.toLowerCase().includes(q) || r.handle.toLowerCase().includes(q) || r.access_pin.includes(q))) return false;
+      if (approvalFilter !== "all" && (r.approval_counts[approvalFilter] ?? 0) === 0) return false;
+      if (countFilter === "with" && r.post_count === 0) return false;
+      if (countFilter === "without" && r.post_count > 0) return false;
+      if (countFilter === "full" && r.post_count < 12) return false;
+      return true;
+    });
+  }, [rows, query, showAdmins, approvalFilter, countFilter]);
+
 
   const selected = filtered?.find((r) => r.id === selectedId) ?? null;
 
@@ -145,7 +163,7 @@ function AdminPage() {
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
 
-  const canReorder = query.trim() === "";
+  const canReorder = query.trim() === "" && approvalFilter === "all" && countFilter === "all" && !showAdmins;
 
   const handleDragEnd = async (e: DragEndEvent) => {
     if (!rows || !e.over || e.active.id === e.over.id) return;
@@ -212,6 +230,39 @@ function AdminPage() {
               className="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:bg-white focus:border-violet-400"
             />
           </div>
+
+          <div className="mb-4 flex flex-wrap gap-2 text-xs">
+            <FilterChip active={showAdmins} onClick={() => setShowAdmins((v) => !v)}>
+              {showAdmins ? "Ocultar admins" : "Mostrar admins"}
+            </FilterChip>
+            <FilterChip active={approvalFilter === "pending"} onClick={() => setApprovalFilter((v) => v === "pending" ? "all" : "pending")}>
+              Com pendentes
+            </FilterChip>
+            <FilterChip active={approvalFilter === "approved"} onClick={() => setApprovalFilter((v) => v === "approved" ? "all" : "approved")}>
+              Com aprovados
+            </FilterChip>
+            <FilterChip active={approvalFilter === "changes_requested"} onClick={() => setApprovalFilter((v) => v === "changes_requested" ? "all" : "changes_requested")}>
+              Com alterações
+            </FilterChip>
+            <FilterChip active={countFilter === "with"} onClick={() => setCountFilter((v) => v === "with" ? "all" : "with")}>
+              Com posts
+            </FilterChip>
+            <FilterChip active={countFilter === "without"} onClick={() => setCountFilter((v) => v === "without" ? "all" : "without")}>
+              Sem posts
+            </FilterChip>
+            <FilterChip active={countFilter === "full"} onClick={() => setCountFilter((v) => v === "full" ? "all" : "full")}>
+              Feed cheio (12/12)
+            </FilterChip>
+            {(showAdmins || approvalFilter !== "all" || countFilter !== "all" || query) ? (
+              <button
+                onClick={() => { setShowAdmins(false); setApprovalFilter("all"); setCountFilter("all"); setQuery(""); }}
+                className="h-8 px-3 rounded-full text-xs text-slate-500 hover:text-slate-700"
+              >
+                Limpar filtros
+              </button>
+            ) : null}
+          </div>
+
 
           {filtered === null ? (
             <div className="grid place-items-center py-16">
@@ -498,5 +549,22 @@ function SortableCompanyCard({
         </button>
       </div>
     </li>
+  );
+}
+
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-8 px-3 rounded-full border text-xs font-medium transition-colors ${
+        active
+          ? "text-white border-transparent"
+          : "border-slate-200 text-slate-600 bg-white hover:border-violet-300"
+      }`}
+      style={active ? { background: `linear-gradient(135deg, ${PURPLE}, ${ORANGE})` } : undefined}
+    >
+      {children}
+    </button>
   );
 }
