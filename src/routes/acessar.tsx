@@ -15,6 +15,18 @@ import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestC
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+function formatDateBR(d?: string) {
+  if (!d) return "";
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return d;
+}
+function formatTypePT(t?: string) {
+  const map: Record<string, string> = { image: "Imagem", carousel: "Carrossel", video: "Vídeo", reel: "Reel", story: "Story" };
+  return map[t ?? ""] ?? (t ?? "");
+}
+
+
 
 export const Route = createFileRoute("/acessar")({
   ssr: false,
