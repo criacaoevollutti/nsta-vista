@@ -223,37 +223,6 @@ function AdminPage() {
             />
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2 text-xs">
-            <FilterChip active={showAdmins} onClick={() => setShowAdmins((v) => !v)}>
-              {showAdmins ? "Ocultar admins" : "Mostrar admins"}
-            </FilterChip>
-            <FilterChip active={approvalFilter === "pending"} onClick={() => setApprovalFilter((v) => v === "pending" ? "all" : "pending")}>
-              Com pendentes
-            </FilterChip>
-            <FilterChip active={approvalFilter === "approved"} onClick={() => setApprovalFilter((v) => v === "approved" ? "all" : "approved")}>
-              Com aprovados
-            </FilterChip>
-            <FilterChip active={approvalFilter === "changes_requested"} onClick={() => setApprovalFilter((v) => v === "changes_requested" ? "all" : "changes_requested")}>
-              Com alterações
-            </FilterChip>
-            <FilterChip active={countFilter === "with"} onClick={() => setCountFilter((v) => v === "with" ? "all" : "with")}>
-              Com posts
-            </FilterChip>
-            <FilterChip active={countFilter === "without"} onClick={() => setCountFilter((v) => v === "without" ? "all" : "without")}>
-              Sem posts
-            </FilterChip>
-            <FilterChip active={countFilter === "full"} onClick={() => setCountFilter((v) => v === "full" ? "all" : "full")}>
-              Feed cheio (12/12)
-            </FilterChip>
-            {(showAdmins || approvalFilter !== "all" || countFilter !== "all" || query) ? (
-              <button
-                onClick={() => { setShowAdmins(false); setApprovalFilter("all"); setCountFilter("all"); setQuery(""); }}
-                className="h-8 px-3 rounded-full text-xs text-slate-500 hover:text-slate-700"
-              >
-                Limpar filtros
-              </button>
-            ) : null}
-          </div>
 
 
           {filtered === null ? (
