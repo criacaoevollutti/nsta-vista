@@ -51,9 +51,25 @@ function AdminPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adminPin, setAdminPin] = useState<string | null>(null);
-  const [showAdmins, setShowAdmins] = useState(false);
-  const [approvalFilter, setApprovalFilter] = useState<"all" | ApprovalKey>("all");
-  const [countFilter, setCountFilter] = useState<"all" | "with" | "without" | "full">("all");
+  const [showAdmins, setShowAdmins] = useState<boolean>(() => {
+    try { return localStorage.getItem("admin.showAdmins") === "1"; } catch { return false; }
+  });
+  const [approvalFilter, setApprovalFilter] = useState<"all" | ApprovalKey>(() => {
+    try {
+      const v = localStorage.getItem("admin.approvalFilter");
+      return v === "pending" || v === "approved" || v === "changes_requested" ? v : "all";
+    } catch { return "all"; }
+  });
+  const [countFilter, setCountFilter] = useState<"all" | "with" | "without" | "full">(() => {
+    try {
+      const v = localStorage.getItem("admin.countFilter");
+      return v === "with" || v === "without" || v === "full" ? v : "all";
+    } catch { return "all"; }
+  });
+
+  useEffect(() => { try { localStorage.setItem("admin.showAdmins", showAdmins ? "1" : "0"); } catch {} }, [showAdmins]);
+  useEffect(() => { try { localStorage.setItem("admin.approvalFilter", approvalFilter); } catch {} }, [approvalFilter]);
+  useEffect(() => { try { localStorage.setItem("admin.countFilter", countFilter); } catch {} }, [countFilter]);
 
 
   useEffect(() => {
