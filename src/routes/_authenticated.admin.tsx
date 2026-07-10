@@ -51,47 +51,6 @@ function AdminPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adminPin, setAdminPin] = useState<string | null>(null);
-  const [showAdmins, setShowAdmins] = useState<boolean>(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get("admins");
-      if (q === "1") return true;
-      if (q === "0") return false;
-      return localStorage.getItem("admin.showAdmins") === "1";
-    } catch { return false; }
-  });
-  const [approvalFilter, setApprovalFilter] = useState<"all" | ApprovalKey>(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get("approval");
-      if (q === "pending" || q === "approved" || q === "changes_requested" || q === "all") return q as "all" | ApprovalKey;
-      const v = localStorage.getItem("admin.approvalFilter");
-      return v === "pending" || v === "approved" || v === "changes_requested" ? v : "all";
-    } catch { return "all"; }
-  });
-  const [countFilter, setCountFilter] = useState<"all" | "with" | "without" | "full">(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get("posts");
-      if (q === "with" || q === "without" || q === "full" || q === "all") return q;
-      const v = localStorage.getItem("admin.countFilter");
-      return v === "with" || v === "without" || v === "full" ? v : "all";
-    } catch { return "all"; }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("admin.showAdmins", showAdmins ? "1" : "0");
-      localStorage.setItem("admin.approvalFilter", approvalFilter);
-      localStorage.setItem("admin.countFilter", countFilter);
-      const url = new URL(window.location.href);
-      const setOrDel = (k: string, v: string, def: string) => {
-        if (v === def) url.searchParams.delete(k);
-        else url.searchParams.set(k, v);
-      };
-      setOrDel("admins", showAdmins ? "1" : "0", "0");
-      setOrDel("approval", approvalFilter, "all");
-      setOrDel("posts", countFilter, "all");
-      window.history.replaceState(null, "", url.pathname + (url.search ? url.search : "") + url.hash);
-    } catch {}
-  }, [showAdmins, approvalFilter, countFilter]);
 
 
   useEffect(() => {
