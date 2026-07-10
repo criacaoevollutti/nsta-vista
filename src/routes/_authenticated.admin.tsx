@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
+type ApprovalKey = "pending" | "approved" | "changes_requested";
 type Row = {
   id: string;
   name: string;
@@ -33,7 +34,9 @@ type Row = {
   access_pin: string;
   updated_at: string;
   position: number | null;
+  is_admin: boolean;
   post_count: number;
+  approval_counts: Record<ApprovalKey, number>;
 };
 
 const PURPLE = "#7c3aed";
