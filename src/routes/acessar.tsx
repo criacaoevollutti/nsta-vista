@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Check, Delete, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus, X, ImagePlus, Trash2 } from "lucide-react";
+import { Camera, Check, Delete, GripVertical, Loader2, LockKeyhole, MessageSquareWarning, ShieldCheck, ArrowLeft, Plus, X, ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppFrame } from "@/components/AppFrame";
 import { TopBar } from "@/components/TopBar";
@@ -407,6 +407,103 @@ function AccessPage() {
         </div>
       </div>
     </AppFrame>
+  );
+}
+
+function AdminFilterChip({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-8 px-3 rounded-full border text-xs font-medium transition ${
+        active
+          ? "border-purple-300 bg-purple-50 text-purple-700"
+          : "border-slate-200 bg-white text-slate-600 hover:border-orange-200 hover:text-orange-600"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SortableAdminProfileCard({
+  profile,
+  loading,
+  canReorder,
+  onOpen,
+}: {
+  profile: AdminProfile;
+  loading: boolean;
+  canReorder: boolean;
+  onOpen: () => void;
+}) {
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
+    id: profile.id,
+    disabled: !canReorder,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 20 : undefined,
+  };
+  const approvalCounts = profile.approval_counts ?? { pending: 0, approved: 0, changes_requested: 0 };
+  const statusSummary = [
+    approvalCounts.pending > 0 ? `${approvalCounts.pending} pend.` : null,
+    approvalCounts.approved > 0 ? `${approvalCounts.approved} aprov.` : null,
+    approvalCounts.changes_requested > 0 ? `${approvalCounts.changes_requested} alt.` : null,
+  ].filter(Boolean).join(" · ");
+
+  return (
+    <div ref={setNodeRef} style={style} className={isDragging ? "relative shadow-lg rounded-2xl" : undefined}>
+      <button
+        type="button"
+        onClick={onOpen}
+        disabled={loading}
+        className="w-full flex items-center gap-3 p-3 rounded-2xl border border-slate-200 hover:border-purple-400 hover:bg-purple-50/40 transition text-left disabled:opacity-50 bg-white"
+      >
+        {canReorder ? (
+          <span
+            className="h-9 w-5 grid place-items-center text-slate-300 cursor-grab active:cursor-grabbing touch-none shrink-0"
+            aria-label="Mover empresa"
+            {...attributes}
+            {...listeners}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <GripVertical className="h-4 w-4" />
+          </span>
+        ) : null}
+
+        {profile.avatar ? (
+          <img src={profile.avatar} alt={profile.name} className="h-12 w-12 rounded-full object-cover" />
+        ) : (
+          <div className="h-12 w-12 rounded-full grid place-items-center text-white font-semibold" style={{ background: "linear-gradient(135deg,#7c3aed,#f97316)" }}>
+            {profile.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-slate-900 flex items-center gap-1.5 truncate">
+            {profile.name}
+            {profile.is_admin ? <ShieldCheck className="h-3.5 w-3.5 text-purple-600 shrink-0" /> : null}
+          </div>
+          <div className="text-xs text-slate-500 truncate">@{profile.handle.replace(/^@+/, "")}</div>
+          <div className="text-[11px] text-slate-400 truncate">
+            {profile.post_count ?? 0}/12 posts{statusSummary ? ` · ${statusSummary}` : ""}
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-[10px] uppercase tracking-wider text-slate-400">PIN</div>
+          <div className="text-sm font-mono font-bold text-orange-600">{profile.access_pin}</div>
+        </div>
+      </button>
+    </div>
   );
 }
 
