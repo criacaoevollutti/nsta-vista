@@ -163,7 +163,7 @@ function AdminPage() {
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
 
-  const canReorder = query.trim() === "";
+  const canReorder = query.trim() === "" && approvalFilter === "all" && countFilter === "all" && !showAdmins;
 
   const handleDragEnd = async (e: DragEndEvent) => {
     if (!rows || !e.over || e.active.id === e.over.id) return;
