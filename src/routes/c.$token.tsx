@@ -282,8 +282,9 @@ function PostReviewSheet({
         <div className="p-4 space-y-4">
           <div>
             <div className="text-xs text-muted-foreground">
-              {post.date} • {post.time}
+              {formatTypePT(post.type)} • {formatDateBR(post.date)} • {post.time}
             </div>
+
             
             <p className="text-sm whitespace-pre-wrap text-muted-foreground mt-2">{post.caption}</p>
           </div>
