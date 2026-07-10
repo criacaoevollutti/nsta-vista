@@ -551,3 +551,20 @@ function SortableCompanyCard({
     </li>
   );
 }
+
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-8 px-3 rounded-full border text-xs font-medium transition-colors ${
+        active
+          ? "text-white border-transparent"
+          : "border-slate-200 text-slate-600 bg-white hover:border-violet-300"
+      }`}
+      style={active ? { background: `linear-gradient(135deg, ${PURPLE}, ${ORANGE})` } : undefined}
+    >
+      {children}
+    </button>
+  );
+}
