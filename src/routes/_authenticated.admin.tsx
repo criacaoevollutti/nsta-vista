@@ -99,16 +99,11 @@ function AdminPage() {
   const filtered = useMemo(() => {
     if (!rows) return null;
     const q = query.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (!showAdmins && r.is_admin) return false;
-      if (q && !(r.name.toLowerCase().includes(q) || r.handle.toLowerCase().includes(q) || r.access_pin.includes(q))) return false;
-      if (approvalFilter !== "all" && (r.approval_counts[approvalFilter] ?? 0) === 0) return false;
-      if (countFilter === "with" && r.post_count === 0) return false;
-      if (countFilter === "without" && r.post_count > 0) return false;
-      if (countFilter === "full" && r.post_count < 12) return false;
-      return true;
-    });
-  }, [rows, query, showAdmins, approvalFilter, countFilter]);
+    if (!q) return rows;
+    return rows.filter((r) =>
+      r.name.toLowerCase().includes(q) || r.handle.toLowerCase().includes(q) || r.access_pin.includes(q),
+    );
+  }, [rows, query]);
 
 
   const selected = filtered?.find((r) => r.id === selectedId) ?? null;
