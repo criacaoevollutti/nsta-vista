@@ -15,6 +15,18 @@ import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestC
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+function formatDateBR(d?: string) {
+  if (!d) return "";
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return d;
+}
+function formatTypePT(t?: string) {
+  const map: Record<string, string> = { image: "Imagem", carousel: "Carrossel", video: "Vídeo", reel: "Reel", story: "Story" };
+  return map[t ?? ""] ?? (t ?? "");
+}
+
+
 
 export const Route = createFileRoute("/acessar")({
   ssr: false,
@@ -684,7 +696,7 @@ function PostReviewSheet({
           <div className="grid grid-cols-2 gap-2">
             <div className="text-xs">
               <span className="text-muted-foreground">Data</span>
-              <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center">{post.date}</div>
+              <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center">{formatDateBR(post.date)}</div>
             </div>
             <div className="text-xs">
               <span className="text-muted-foreground">Hora</span>
@@ -694,7 +706,7 @@ function PostReviewSheet({
 
           <div className="text-xs block">
             <span className="text-muted-foreground">Tipo</span>
-            <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center capitalize">{post.type}</div>
+            <div className="mt-1 w-full h-9 rounded-md border border-hairline bg-background px-2 text-sm flex items-center">{formatTypePT(post.type)}</div>
           </div>
 
 

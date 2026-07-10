@@ -11,6 +11,18 @@ import { isVideoUrl } from "@/lib/utils";
 import { MediaThumb } from "@/components/MediaThumb";
 import { CarouselMedia } from "@/components/CarouselMedia";
 
+function formatDateBR(d?: string) {
+  if (!d) return "";
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return d;
+}
+function formatTypePT(t?: string) {
+  const map: Record<string, string> = { image: "Imagem", carousel: "Carrossel", video: "Vídeo", reel: "Reel", story: "Story" };
+  return map[t ?? ""] ?? (t ?? "");
+}
+
+
 
 export const Route = createFileRoute("/c/$token")({
   ssr: false,
@@ -270,8 +282,9 @@ function PostReviewSheet({
         <div className="p-4 space-y-4">
           <div>
             <div className="text-xs text-muted-foreground">
-              {post.date} • {post.time}
+              {formatTypePT(post.type)} • {formatDateBR(post.date)} • {post.time}
             </div>
+
             
             <p className="text-sm whitespace-pre-wrap text-muted-foreground mt-2">{post.caption}</p>
           </div>
