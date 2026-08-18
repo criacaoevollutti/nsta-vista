@@ -176,7 +176,10 @@ function StatusPill({ status }: { status: SharedPost["approval_status"] }) {
       {status === "approved" ? (
         <Check className="h-3 w-3" strokeWidth={3} />
       ) : (
-        <MessageSquareWarning className="h-3 w-3" strokeWidth={2.5} />
+        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wide px-0.5">
+          <MessageSquareWarning className="h-3 w-3" strokeWidth={2.5} />
+          Ajuste
+        </span>
       )}
     </div>
   );
@@ -313,7 +316,7 @@ function PostReviewSheet({
               ) : (
                 <MessageSquareWarning className="h-4 w-4" />
               )}
-              Solicitar alteração
+              Solicitar ajuste
             </button>
             <button
               onClick={() => submit("approved")}

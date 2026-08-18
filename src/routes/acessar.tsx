@@ -703,7 +703,14 @@ function StatusPill({ status }: { status: SharedPost["approval_status"] }) {
   const cls = status === "approved" ? "bg-status-approved" : "bg-status-revision";
   return (
     <div className={`absolute bottom-1.5 left-1.5 h-5 min-w-5 px-1 rounded-full grid place-items-center text-white ${cls} shadow-[0_2px_6px_rgba(0,0,0,0.25)]`}>
-      {status === "approved" ? <Check className="h-3 w-3" strokeWidth={3} /> : <MessageSquareWarning className="h-3 w-3" strokeWidth={2.5} />}
+      {status === "approved" ? (
+        <Check className="h-3 w-3" strokeWidth={3} />
+      ) : (
+        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wide px-0.5">
+          <MessageSquareWarning className="h-3 w-3" strokeWidth={2.5} />
+          Ajuste
+        </span>
+      )}
     </div>
   );
 }
@@ -798,7 +805,7 @@ function PostReviewSheet({
               className="h-11 rounded-full text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50 bg-brand-orange"
             >
               <MessageSquareWarning className="h-4 w-4" />
-              Solicitar suporte
+              Solicitar ajuste
             </button>
           </div>
 
@@ -813,7 +820,7 @@ function PostReviewSheet({
               }}
               className="w-full h-10 rounded-full border border-hairline text-sm text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1.5"
             >
-              Desfazer marcação {post.approval_status === "approved" ? "de aprovação" : "de suporte"}
+              Desfazer marcação {post.approval_status === "approved" ? "de aprovação" : "de ajuste"}
             </button>
           ) : null}
 
@@ -843,7 +850,7 @@ function PostReviewSheet({
                     const ok = await setStatus("changes_requested", supportText);
                     setSendingSupport(false);
                     if (!ok) return;
-                    toast.success("Suporte solicitado");
+                    toast.success("Ajuste solicitado");
                     setSupportOpen(false);
                   }}
                   disabled={sendingSupport || !supportText.trim()}
@@ -1081,8 +1088,8 @@ function AdminPostEditor({
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
     if (!files.length) return;
-    const remaining = 10 - form.carousel_images.length;
-    if (remaining <= 0) { toast.error("Limite de 10 imagens atingido"); return; }
+    const remaining = 20 - form.carousel_images.length;
+    if (remaining <= 0) { toast.error("Limite de 20 imagens atingido"); return; }
     const toUpload = files.slice(0, remaining);
     setUploadingExtra(true);
     try {
@@ -1098,7 +1105,7 @@ function AdminPostEditor({
         if (signed?.signedUrl) urls.push(signed.signedUrl);
       }
       if (urls.length) {
-        setForm((f) => ({ ...f, carousel_images: [...f.carousel_images, ...urls].slice(0, 10) }));
+        setForm((f) => ({ ...f, carousel_images: [...f.carousel_images, ...urls].slice(0, 20) }));
         toast.success(`${urls.length} imagem(ns) adicionada(s)`);
       }
     } finally {
@@ -1203,11 +1210,11 @@ function AdminPostEditor({
           {form.type === "carousel" ? (
             <div className="text-xs block">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Imagens do carrossel <span className="text-muted-foreground/70">(além da capa · {form.carousel_images.length}/10)</span></span>
+                <span className="text-muted-foreground">Imagens do carrossel <span className="text-muted-foreground/70">(além da capa · {form.carousel_images.length}/20)</span></span>
                 <button
                   type="button"
                   onClick={() => extraRef.current?.click()}
-                  disabled={uploadingExtra || form.carousel_images.length >= 10}
+                  disabled={uploadingExtra || form.carousel_images.length >= 20}
                   className="h-8 px-2.5 rounded-full border border-hairline text-xs inline-flex items-center gap-1 disabled:opacity-50"
                 >
                   {uploadingExtra ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
