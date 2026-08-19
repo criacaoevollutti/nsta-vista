@@ -1187,6 +1187,23 @@ function AdminPostEditor({
         </div>
 
         <div className="p-4 space-y-3">
+          {post.approval_status === "changes_requested" ? (
+            <div className="rounded-xl border border-amber-300/70 bg-amber-50 p-3">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+                <MessageSquareWarning className="h-3.5 w-3.5" />
+                Ajuste solicitado pelo cliente
+              </div>
+              <p className="mt-1.5 text-sm text-amber-900 whitespace-pre-wrap">
+                {post.client_comment?.trim() || "O cliente pediu ajuste sem escrever observações."}
+              </p>
+            </div>
+          ) : post.approval_status === "approved" ? (
+            <div className="rounded-xl border border-emerald-300/70 bg-emerald-50 p-3 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 inline-flex items-center gap-1.5">
+              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+              Aprovado pelo cliente
+            </div>
+          ) : null}
+
           <div className="grid grid-cols-2 gap-2">
             <label className="text-xs">
               <span className="text-muted-foreground">Data</span>
