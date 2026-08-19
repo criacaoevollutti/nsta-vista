@@ -1025,6 +1025,7 @@ function AdminPostEditor({
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingExtra, setUploadingExtra] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [resolving, setResolving] = useState(false);
 
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -1130,6 +1131,21 @@ function AdminPostEditor({
     onUpdated({ ...post, ...form });
   };
 
+  // Marca o ajuste como concluído: salva as edições e zera a análise do cliente.
+  const markAdjusted = async () => {
+    setResolving(true);
+    const patch = { ...form, approval_status: "pending", client_comment: "" };
+    const { data, error } = await supabase.rpc("admin_update_post", {
+      _admin_pin: adminPin,
+      _post_id: post.id,
+      _patch: patch as unknown as never,
+    });
+    setResolving(false);
+    if (error || !data) { toast.error("Não foi possível concluir o ajuste"); return; }
+    toast.success("Ajuste concluído · enviado para nova análise do cliente");
+    onUpdated({ ...post, ...form, approval_status: "pending", client_comment: "" });
+  };
+
   const remove = async () => {
     if (!window.confirm("Excluir esta postagem?")) return;
     setDeleting(true);
@@ -1195,6 +1211,18 @@ function AdminPostEditor({
               </div>
               <p className="mt-1.5 text-sm text-amber-900 whitespace-pre-wrap">
                 {post.client_comment?.trim() || "O cliente pediu ajuste sem escrever observações."}
+              </p>
+              <button
+                type="button"
+                onClick={markAdjusted}
+                disabled={resolving || saving}
+                className="mt-3 w-full h-10 rounded-full bg-amber-600 text-white text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {resolving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+                Ajuste realizado
+              </button>
+              <p className="mt-1.5 text-[11px] text-amber-700/80 text-center">
+                Salva as alterações e envia para nova análise do cliente.
               </p>
             </div>
           ) : post.approval_status === "approved" ? (
