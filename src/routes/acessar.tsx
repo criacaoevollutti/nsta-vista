@@ -1212,6 +1212,18 @@ function AdminPostEditor({
               <p className="mt-1.5 text-sm text-amber-900 whitespace-pre-wrap">
                 {post.client_comment?.trim() || "O cliente pediu ajuste sem escrever observações."}
               </p>
+              <button
+                type="button"
+                onClick={markAdjusted}
+                disabled={resolving || saving}
+                className="mt-3 w-full h-10 rounded-full bg-amber-600 text-white text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {resolving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+                Ajuste realizado
+              </button>
+              <p className="mt-1.5 text-[11px] text-amber-700/80 text-center">
+                Salva as alterações e envia para nova análise do cliente.
+              </p>
             </div>
           ) : post.approval_status === "approved" ? (
             <div className="rounded-xl border border-emerald-300/70 bg-emerald-50 p-3 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 inline-flex items-center gap-1.5">
