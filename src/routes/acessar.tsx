@@ -1130,6 +1130,21 @@ function AdminPostEditor({
     onUpdated({ ...post, ...form });
   };
 
+  // Marca o ajuste como concluído: salva as edições e zera a análise do cliente.
+  const markAdjusted = async () => {
+    setResolving(true);
+    const patch = { ...form, approval_status: "pending", client_comment: "" };
+    const { data, error } = await supabase.rpc("admin_update_post", {
+      _admin_pin: adminPin,
+      _post_id: post.id,
+      _patch: patch as unknown as never,
+    });
+    setResolving(false);
+    if (error || !data) { toast.error("Não foi possível concluir o ajuste"); return; }
+    toast.success("Ajuste concluído · enviado para nova análise do cliente");
+    onUpdated({ ...post, ...form, approval_status: "pending", client_comment: "" });
+  };
+
   const remove = async () => {
     if (!window.confirm("Excluir esta postagem?")) return;
     setDeleting(true);
