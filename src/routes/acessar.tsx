@@ -1025,6 +1025,7 @@ function AdminPostEditor({
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingExtra, setUploadingExtra] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [resolving, setResolving] = useState(false);
 
 
   const fileRef = useRef<HTMLInputElement>(null);
